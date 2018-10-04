@@ -2,17 +2,14 @@ import codeanticode.syphon.*;
 import controlP5.*;
 
 ControlP5 cp5;
-
-Slider slider1, slider2, slider3, slider4;
-
 float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
+ArrayList<Corner> corners = new ArrayList();
 Ribbon[] ribbons = new Ribbon[4];
 Ribbon stripes;
-Bushel b1;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
-PImage[] bushels = new PImage[2];
+PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
 PImage ribbon, logo, bushel;
 
@@ -39,18 +36,24 @@ void setup() {
   leaves[1] = loadImage("leaf02.png");
   bushels[0] = loadImage("bushel01.png");
   bushels[1] = loadImage("bushel02.png");
+  bushels[2] = loadImage("bushel03.png");
+  bushels[3] = loadImage("bushel04.png");
   flowers[0] = loadImage("flower01.png");
   flowers[1] = loadImage("flower02.png");
   flowers[2] = loadImage("flower03.png");
   flowers[3] = loadImage("flower04.png");
 
-  b1 = new Bushel(new PVector(0,0));
+  corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
+  corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
+  corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
+  corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 
   ribbon = loadImage("ribbon.png");
   logo = loadImage("vaevlogo.png");
-  mandalas.add(new Mandala(carrots, 28, -.2, TWO_PI, .3*PI, .0003, 350, .8));
+  mandalas.add(new Mandala(carrots, 34, -.2, PI, .1*PI, .0003, 700, .8));
   mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
   mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
+  mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
   mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
   int c = 0;
   for (int i = 0; i<ribbons.length; i++) {
@@ -73,14 +76,16 @@ void draw() {
   c.image(logo, c.width/2, c.height/2);
 
   for (Mandala m : mandalas){
+    m.update();
     m.display();
   }
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
     ribbons[i].display();
   }
-
-  b1.display();
+  for (Corner cnr : corners) {
+    cnr.display();
+  }
   c.endDraw();
 
   image(c, 0,0, width, height);
@@ -154,7 +159,8 @@ class Mandala {
   float a; // angle
   int d; //distance to center
   float r_s; //normalized rotation speed
-
+  float r = 0;
+  // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
     n = _n;
     w_s = _w_s;
@@ -168,18 +174,21 @@ class Mandala {
   }
 
   void update() {
+    if (r >= TWO_PI) r = 0;
+    else if (r < 0) r = TWO_PI;
+    else r += r_s;
   }
 
   void display() {
     c.pushMatrix();
     c.translate(c.width*.5, c.height*.5); // move to center of screen
-    c.rotate(millis()*(.001*r_s));
+    c.rotate(r);
 
     int g_i = 0; //index for choosing graphics from g_array
     for (int i = 0; i<n; i++) {
       c.pushMatrix();
       c.translate(cos(i*a_o)*d, sin(i*a_o)*d); // move away from center
-      c.rotate(a_o*i); //rotate around center
+      c.rotate(a_o*i); //distribute around center
       c.rotate(wiggleFloat(w_a, w_s)); //wiggle rotation
       c.rotate(a*PI); //set initial angle
 
@@ -197,27 +206,28 @@ class Mandala {
   }
 }
 
-class Bushel {
+class Corner {
   PVector pos;
+  PVector head; //heading - the direction of the bushel
   float a;
-  PImage b;
-  Bushel(PVector _pos){
+  PImage b = bushels[3];
+  float sc = 1.5;
+  Corner(PVector _pos, PVector _head){
     pos = _pos;
-    a = PVector.angleBetween(pos, cc);
+    head = _head;
     println(a);
-    int r = round(random(1));
-    b = bushels[r];
+    int r = round(bushels.length-1);
+    a = 0;
   }
 
   void display(){
     c.imageMode(CORNER);
-    c.rectMode(CORNER);
-    PVector mouse = new PVector(mouseX, mouseY);
-    //println(a);
     c.pushMatrix();
-    c.translate(pos.x-10, pos.y-10);
-    c.rotate(a);
-    c.image(b, 0,0, b.width*2, b.height*2);
+    // position bushel with small offset
+    c.translate(pos.x+(head.x*-1*25*sc), pos.y+(head.y*-1*25*sc));
+    c.rotate(a+wiggleFloat(.05, .001));
+    c.scale(head.x, head.y);
+    c.image(b, 0,0, b.width*sc, b.height*sc);
     c.popMatrix();
   }
 }
