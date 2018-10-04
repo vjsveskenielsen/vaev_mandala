@@ -3,7 +3,7 @@ import controlP5.*;
 
 ControlP5 cp5;
 
-Slider slider1;
+Slider slider1, slider2, slider3, slider4;
 
 float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
