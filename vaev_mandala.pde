@@ -26,7 +26,8 @@ int port = 9999;
 String ip;
 
 PGraphics c;
-int cw = 1920, ch = 1080;
+int cw = 1920, ch = 1080; //canvas dimensions
+float lim_l, lim_r, lim_t, lim_b; //limits for graphics to be drawn within
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -74,10 +75,10 @@ void setup() {
 
 // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   mandalas.add(new Mandala(carrots, 34, -.2, PI, .1*PI, .0003, 700, .8));
-  mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
-  mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
-  mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
-  mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
+  //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
+  //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
+  //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
+  //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
 
   for (int i = 0; i<ribbons.length; i++) {
     Ribbon r = new Ribbon(HALF_PI*i, 1., new PVector(10, 10));

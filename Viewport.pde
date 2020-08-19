@@ -36,6 +36,14 @@ class Viewport {
     canvas_width = dims[2];
     canvas_height =dims[3];
     bg = createAlphaBackground(canvas_width, canvas_height);
+
+    //set the limits a bit outside of the canvas edges
+    //to avoid "popping"
+    lim_l = -50;
+    lim_r = c.width+50;
+    lim_t = -50;
+    lim_b = c.height+50;
+    println("limits:", lim_l, lim_r, lim_t, lim_b);
   }
 
   PGraphics createAlphaBackground(int w, int h) {

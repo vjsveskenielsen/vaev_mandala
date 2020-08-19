@@ -50,7 +50,8 @@ int port = 9999;
 String ip;
 
 PGraphics c;
-int cw = 1920, ch = 1080;
+int cw = 1920, ch = 1080; //canvas dimensions
+float lim_l, lim_r, lim_t, lim_b; //limits for graphics to be drawn within
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -96,8 +97,7 @@ public void setup() {
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 
-  ribbon = loadImage("ribbon.png");
-  logo = loadImage("vaevlogo.png");
+// graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   mandalas.add(new Mandala(carrots, 34, -.2f, PI, .1f*PI, .0003f, 700, .8f));
   mandalas.add(new Mandala(leaves, 40, .3f, .0f, .3f*PI, .0003f, 200, 1.f));
   mandalas.add(new Mandala(leaves, 80, .3f, .0f, .3f*PI, .0003f, 500, 1.f));
@@ -232,15 +232,23 @@ class Mandala {
   float g_s; //normalized graphics scale
   float a_o; // angle offset for each graphic
   float a; // angle
-  int d; //distance to center
+  float d; //distance to center
   float r_s; //normalized rotation speed
   float r = 0;
+
+  PVector anchor;
+  float divs; // angle offset for each graphic
+  float max_d;
+  float dir = 0;
+  PVector p = new PVector(0, 0);
+
+
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
     n = _n;
     w_s = _w_s;
     w_a = _w_a;
-    a_o = TWO_PI/n; // set angle offset
+    divs = TWO_PI/n; // set angle offset
     a = _a;
     d = _d;
     g_s = _g_s;
@@ -255,8 +263,9 @@ class Mandala {
   }
 
   public void display() {
+    /*
     c.pushMatrix();
-    c.translate(c.width*.5f, c.height*.5f); // move to center of screen
+    c.translate(c.width*.5, c.height*.5); // move to center of screen
     c.rotate(r);
 
     int g_i = 0; //index for choosing graphics from g_array
@@ -278,7 +287,43 @@ class Mandala {
       c.popMatrix();
     }
     c.popMatrix();
+    */
+
+    anchor = new PVector(c.width/2, c.height/2);
+    for (int i = 0; i<n; i++) {
+      d = 200+sin(i+r)*50; //oscillate distance value to create wavy mandalas
+      p = PVectorOnCircularPath(i*divs+r, d); //calculate path with p
+      //anchor is added to p, as we need to calculate if
+      p.add(anchor);
+      //graphics will only be processed if inside the limit area
+      if (p.x >= lim_l && p.x <= lim_r && p.y >= lim_t && p.y <= lim_b) {
+        //to calculate the angle, we make another PVector with a slight offset on the path
+        PVector pp = PVectorOnCircularPath(i*divs+dir+.25f, d);
+        pp.add(anchor);
+        float angle = atan2(p.y-pp.y, p.x-pp.x);
+
+        //draw graphics, orient along path
+        c.pushMatrix();
+        c.translate(p.x, p.y);
+        c.rotate(angle);
+        c.fill(255);
+        c.rect(0, 0, 100, 100);
+        c.point(0, 15);
+        c.popMatrix();
+      }
+    }
   }
+}
+
+public PVector PVectorOnCircularPath(float angle, float distance) {
+  float x = cos(angle) * distance;
+  float y = sin(angle) * distance;
+  return new PVector(x, y);
+}
+
+public float calcHypotenuse(float a, float b) {
+  float c = sqrt(pow(a, 2) + pow(b, 2));
+  return c;
 }
 class Ribbon {
   float p; //progress along x axis
@@ -363,6 +408,14 @@ class Viewport {
     canvas_width = dims[2];
     canvas_height =dims[3];
     bg = createAlphaBackground(canvas_width, canvas_height);
+
+    //set the limits a bit outside of the canvas edges
+    //to avoid "popping"
+    lim_l = -50;
+    lim_r = c.width+50;
+    lim_t = -50;
+    lim_b = c.height+50;
+    println("limits:", lim_l, lim_r, lim_t, lim_b);
   }
 
   public PGraphics createAlphaBackground(int w, int h) {
@@ -792,6 +845,9 @@ public void loadGraphics() {
   flowers[1] = loadImage("flower02.png");
   flowers[2] = loadImage("flower03.png");
   flowers[3] = loadImage("flower04.png");
+
+  ribbon = loadImage("ribbon.png");
+  logo = loadImage("vaevlogo.png");
 }
 public void noteOn(int channel, int pitch, int velocity) {
   if (log_midi) log.setText("Note On // Channel:"+channel + " // Pitch:"+pitch + " // Velocity:"+velocity);
