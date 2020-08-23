@@ -245,14 +245,14 @@ public void field_cw(String theText) {
   int value = evalFieldInput1(theText, cw, cp5.getController("field_cw"));
   if (value > 0) {
     cw = value;
-    updateCanvas();
+    c = new Layer(cw, ch);
   }
 }
 public void field_ch(String theText) {
   int value = evalFieldInput1(theText, ch, cp5.getController("field_ch"));
   if (value > 0) {
     ch = value;
-    updateCanvas();
+    c = new Layer(cw, ch);
   }
 }
 

@@ -1,81 +1,72 @@
 class Mandala {
   PImage[] g_array;
+  int g; // what graphic to use from g_array[]
+
   float w_s; //wigglespeed
   float w_a; //wiggle amount
-  float s; //scale
   float wiggle;
+
   int n; // iterations
-  int g; // what graphic to use from carrots[]
-  float g_s; //normalized graphics scale
-  float a_o; // angle offset for each graphic
+  float divs; // n angle divisions on circle
+
+  float g_s = 1; //normalized graphics scale for each graphic
+  float scale = 1; //master scale for all graphics
   float a; // angle
-  float d; //distance to center
+
   float r_s; //normalized rotation speed
   float r = 0;
 
-  PVector anchor;
-  float divs; // angle offset for each graphic
-  float max_d;
-  float dir = 0;
-  PVector p = new PVector(0, 0);
-
+  PVector anchor; //Mandala anchor (point of origin)
+  float d = 0; //normalized distance of p (position) from anchor to d_m
+  float d_s = 10; //speed of movement between anchor and d_max
+  float d_max; //maximum distance possible within canvas
+  float[] d_limits;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
     n = _n;
     w_s = _w_s;
     w_a = _w_a;
-    divs = TWO_PI/n; // set angle offset
+    divs = TWO_PI/n;
     a = _a;
     d = _d;
-    g_s = _g_s;
     r_s = _r_s;
     g_array = _g_array;
+    d_limits = noiseArray(n, 300);
+    d_max = calcHypotenuse(c.width/2, c.height/2);
+    anchor = c.center;
   }
 
   void update() {
-    if (r >= TWO_PI) r = 0;
-    else if (r < 0) r = TWO_PI;
-    else r += r_s;
+    r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
+    d = rollOver(d+d_s, 0.0, d_max); //move mandala inwards/outwards
+    anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
+
   }
 
   void display() {
-    /*
-    c.pushMatrix();
-    c.translate(c.width*.5, c.height*.5); // move to center of screen
-    c.rotate(r);
+    PVector p = new PVector(0, 0); //position of each graphic
+    int g_i = 0; //counter for choosing graphic from g_array
 
-    int g_i = 0; //index for choosing graphics from g_array
-    for (int i = 0; i<n; i++) {
-      c.pushMatrix();
-      c.translate(cos(i*a_o)*d, sin(i*a_o)*d); // move away from center
-      c.rotate(a_o*i); //distribute around center
-      c.rotate(wiggleFloat(w_a, w_s)); //wiggle rotation
-      c.rotate(a*PI); //set initial angle
+    //draw graphics on path
+    for (int i = 0; i<n; i++) { //for every n
+      float _d = d; //create local distance value (for further math fuckery)
+      //oscillate distance (positive only) value to create wavy mandalas
+      _d += abs(sin(i+r-1)*20);
 
-      //the graphic displayed at each step in the mandala is chosen
-      // by g_i. Every time a new graphic has been put into the mandala,
-      // the counter increases by 1.
-      if (g_i>=g_array.length) g_i = 0; //cycle through the available graphics
-      PImage img = g_array[g_i];
-      c.image(img, 0, 0, img.width*g_s, img.height*g_s);
-      g_i++;
+      //scale each graphic down when near anchor or max_d
+      if (_d < d_limits[i]) g_s *= _d/d_limits[i];
+      else if (_d > d_max-d_limits[i]) g_s *= map(_d, d_max-d_limits[i], d_max, 1.0, 0.0);
 
-      c.popMatrix();
-    }
-    c.popMatrix();
-    */
+      //calculate position of p on path, with local distance to anchor
+      p = PVectorOnCircularPath(i*divs+r, _d);
 
-    anchor = new PVector(c.width/2, c.height/2);
-    for (int i = 0; i<n; i++) {
-      d = 200+sin(i+r)*50; //oscillate distance value to create wavy mandalas
-      p = PVectorOnCircularPath(i*divs+r, d); //calculate path with p
-      //anchor is added to p, as we need to calculate if
+      //anchor is added to p, as we need to calculate if p is inside the limits
       p.add(anchor);
-      //graphics will only be processed if inside the limit area
-      if (p.x >= lim_l && p.x <= lim_r && p.y >= lim_t && p.y <= lim_b) {
-        //to calculate the angle, we make another PVector with a slight offset on the path
-        PVector pp = PVectorOnCircularPath(i*divs+dir+.25, d);
+      //graphics will only be processed if p is inside the limits
+      if (c.isWithinLimits(p)) {
+        //to calculate the angle of each graphic, we make another PVector with a slight offset on the path
+        PVector pp = PVectorOnCircularPath(i*divs+r+.25, d);
         pp.add(anchor);
         float angle = atan2(p.y-pp.y, p.x-pp.x);
 
@@ -83,22 +74,16 @@ class Mandala {
         c.pushMatrix();
         c.translate(p.x, p.y);
         c.rotate(angle);
-        c.fill(255);
-        c.rect(0, 0, 100, 100);
-        c.point(0, 15);
+        c.image(g_array[g_i], 0, 0, g_array[g_i].width*g_s, g_array[g_i].height*g_s);
         c.popMatrix();
       }
+      /*
+      the graphic displayed at each p of the mandala is chosen by g_i.
+      Every time a new graphic has been put into the mandala, the counter increases by 1.
+      There's a rollover g_i is larger than the number of items in g_array. */
+      g_i = rollOver(g_i+1, 0, g_array.length);
     }
+    c.fill(255);
+    c.rect(c.center.x, c.center.y, 100, 100);
   }
-}
-
-PVector PVectorOnCircularPath(float angle, float distance) {
-  float x = cos(angle) * distance;
-  float y = sin(angle) * distance;
-  return new PVector(x, y);
-}
-
-float calcHypotenuse(float a, float b) {
-  float c = sqrt(pow(a, 2) + pow(b, 2));
-  return c;
 }

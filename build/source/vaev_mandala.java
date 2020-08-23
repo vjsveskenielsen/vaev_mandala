@@ -10,6 +10,9 @@ import oscP5.*;
 import netP5.*; 
 import processing.net.*; 
 import java.util.*; 
+import processing.core.PApplet; 
+import processing.core.PGraphics; 
+import codeanticode.syphon.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -49,9 +52,8 @@ boolean log_midi = true, log_osc = true;
 int port = 9999;
 String ip;
 
-PGraphics c;
+Layer c;
 int cw = 1920, ch = 1080; //canvas dimensions
-float lim_l, lim_r, lim_t, lim_b; //limits for graphics to be drawn within
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -70,8 +72,6 @@ PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
 PImage ribbon, logo, bushel;
 
-PVector cc; //canvas center
-
 public void settings() {
   size(960, 540, P3D);
 }
@@ -82,27 +82,25 @@ public void setup() {
   midi_devices = midi.availableInputs();
   controlSetup();
   updateOSC(port);
-  c = createGraphics(cw, ch, P3D);
-  vp = new Viewport(c, 400, 50, 70);
-  vp.resize(c);
+  c = new Layer(cw, ch);
+  vp = new Viewport(400, 50, 70);
+  vp.update(c);
+
   syphonserver = new SyphonServer(this, syphon_name);
 
-  //create syphon output
-  cc = new PVector(c.width/2, c.height/2);
-
   loadGraphics();
-
+/*
   corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
   corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
-
+*/
 // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   mandalas.add(new Mandala(carrots, 34, -.2f, PI, .1f*PI, .0003f, 700, .8f));
-  mandalas.add(new Mandala(leaves, 40, .3f, .0f, .3f*PI, .0003f, 200, 1.f));
-  mandalas.add(new Mandala(leaves, 80, .3f, .0f, .3f*PI, .0003f, 500, 1.f));
-  mandalas.add(new Mandala(bushels, 68, .3f, .0f, .3f*PI, .0003f, 300, 1.f));
-  mandalas.add(new Mandala(flowers, 80, .3f, .0f, .3f*PI, .0003f, 600, 1.f));
+  //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
+  //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
+  //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
+  //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
 
   for (int i = 0; i<ribbons.length; i++) {
     Ribbon r = new Ribbon(HALF_PI*i, 1.f, new PVector(10, 10));
@@ -130,12 +128,13 @@ public void drawGraphics() {
   c.beginDraw();
   c.background(255, 224, 74);
   c.imageMode(CENTER);
-  c.image(logo, c.width/2, c.height/2);
+  //c.image(logo, c.width/2, c.height/2);
 
   for (Mandala m : mandalas){
     m.update();
     m.display();
   }
+/*
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
     ribbons[i].display();
@@ -143,15 +142,8 @@ public void drawGraphics() {
   for (Corner cnr : corners) {
     cnr.display();
   }
+*/
   c.endDraw();
-}
-
-public float wiggleFloat(float amount, float speed) {
-  return sin(millis()*speed)*amount;
-}
-
-public int wiggleInt(float amount, float speed) {
-  return round(sin(millis()*speed)*amount);
 }
 
 public void displayFrameRate(){
@@ -197,6 +189,104 @@ class Corner {
     c.popMatrix();
   }
 }
+/* Example of a custom Layer class
+ The Layer class extends a PGraphics3D object with nice stuff like
+  - variable limits for optimizing drawing stuff within the canvas
+  - variable for center of canvas
+ */
+
+
+
+
+
+
+public class Layer extends PGraphics3D {
+  /* this class was made with no idea of whats going on, lifting from
+   https://forum.processing.org/two/discussion/5238/#Comment_18116
+   */
+
+  Limits limits = new Limits();
+  PVector center;
+
+  public Layer(int w, int h) {
+    final PApplet p = getEnclosingPApplet();
+    initialize(w, h, p, p.dataPath(""));
+  }
+
+  public Layer(int w, int h, PApplet p) {
+    initialize(w, h, p, p.dataPath(""));
+  }
+
+  public Layer(int w, int h, PApplet p, String s) {
+    initialize(w, h, p, s);
+  }
+
+  public void initialize(int w, int h, PApplet p, String s) {
+    setParent(p);
+    setPrimary(false);
+    setPath(s);
+    setSize(w, h);
+    limits.setLeft(0);
+    limits.setRight(w);
+    limits.setTop(0);
+    limits.setBottom(h);
+    center = new PVector(this.width/2, this.height/2);
+  }
+
+  protected PApplet getEnclosingPApplet() {
+    try {
+      return (PApplet) getClass()
+        .getDeclaredField("this$0").get(this);
+    }
+
+    catch (ReflectiveOperationException cause) {
+      throw new RuntimeException(cause);
+    }
+  }
+
+  @Override public String toString() {
+    return "Width: " + width + "\t Height: " + height
+      + "\nPath:  " + path;
+  }
+
+  public boolean isWithinLimits(PVector p) {
+    if (p.x >= limits.left && p.x <= limits.right && p.y >= limits.top && p.y <= limits.bottom) return true;
+    else return false;
+  }
+
+  public boolean isWithinLimits(int px, int py) {
+    if (px >= limits.left && px <= limits.right && py >= limits.top && py <= limits.bottom) return true;
+    else return false;
+  }
+
+  public boolean isWithinLimits(float px, float py) {
+    if (px >= limits.left && px <= limits.right && py >= limits.top && py <= limits.bottom) return true;
+    else return false;
+  }
+}
+
+class Limits {
+  int left, right, top, bottom;
+
+  Limits() {
+    left = 0;
+    right = 0;
+    top = 0;
+    bottom = 0;
+  }
+  public void setLeft(int l) {
+    left = l;
+  }
+  public void setRight(int r) {
+    right = r;
+  }
+  public void setTop(int t) {
+    top = t;
+  }
+  public void setBottom(int b) {
+    bottom = b;
+  }
+}
 class Log {
   String current_log;
   int counter;
@@ -223,82 +313,73 @@ public String zeroFormat(int input) {
 }
 class Mandala {
   PImage[] g_array;
+  int g; // what graphic to use from g_array[]
+
   float w_s; //wigglespeed
   float w_a; //wiggle amount
-  float s; //scale
   float wiggle;
+
   int n; // iterations
-  int g; // what graphic to use from carrots[]
-  float g_s; //normalized graphics scale
-  float a_o; // angle offset for each graphic
+  float divs; // n angle divisions on circle
+
+  float g_s = 1; //normalized graphics scale for each graphic
+  float scale = 1; //master scale for all graphics
   float a; // angle
-  float d; //distance to center
+
   float r_s; //normalized rotation speed
   float r = 0;
 
-  PVector anchor;
-  float divs; // angle offset for each graphic
-  float max_d;
-  float dir = 0;
-  PVector p = new PVector(0, 0);
-
+  PVector anchor; //Mandala anchor (point of origin)
+  float d = 0; //normalized distance of p (position) from anchor to d_m
+  float d_s = 10; //speed of movement between anchor and d_max
+  float d_max; //maximum distance possible within canvas
+  float[] d_limits;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
     n = _n;
     w_s = _w_s;
     w_a = _w_a;
-    divs = TWO_PI/n; // set angle offset
+    divs = TWO_PI/n;
     a = _a;
     d = _d;
-    g_s = _g_s;
     r_s = _r_s;
     g_array = _g_array;
+    d_limits = noiseArray(n, 300);
+    d_max = calcHypotenuse(c.width/2, c.height/2);
+    anchor = c.center;
   }
 
   public void update() {
-    if (r >= TWO_PI) r = 0;
-    else if (r < 0) r = TWO_PI;
-    else r += r_s;
+    r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
+    d = rollOver(d+d_s, 0.0f, d_max); //move mandala inwards/outwards
+    anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
+
   }
 
   public void display() {
-    /*
-    c.pushMatrix();
-    c.translate(c.width*.5, c.height*.5); // move to center of screen
-    c.rotate(r);
+    PVector p = new PVector(0, 0); //position of each graphic
+    int g_i = 0; //counter for choosing graphic from g_array
 
-    int g_i = 0; //index for choosing graphics from g_array
-    for (int i = 0; i<n; i++) {
-      c.pushMatrix();
-      c.translate(cos(i*a_o)*d, sin(i*a_o)*d); // move away from center
-      c.rotate(a_o*i); //distribute around center
-      c.rotate(wiggleFloat(w_a, w_s)); //wiggle rotation
-      c.rotate(a*PI); //set initial angle
+    //draw graphics on path
+    for (int i = 0; i<n; i++) { //for every n
+      float _d = d; //create local distance value (for further math fuckery)
+      //oscillate distance (positive only) value to create wavy mandalas
+      _d += abs(sin(i+r-1)*20);
 
-      //the graphic displayed at each step in the mandala is chosen
-      // by g_i. Every time a new graphic has been put into the mandala,
-      // the counter increases by 1.
-      if (g_i>=g_array.length) g_i = 0; //cycle through the available graphics
-      PImage img = g_array[g_i];
-      c.image(img, 0, 0, img.width*g_s, img.height*g_s);
-      g_i++;
+      //scale each graphic down when near anchor or max_d
+      if (_d < d_limits[i]) g_s *= _d/d_limits[i];
+      else if (_d > d_max-d_limits[i]) g_s *= map(_d, d_max-d_limits[i], d_max, 1.0f, 0.0f);
 
-      c.popMatrix();
-    }
-    c.popMatrix();
-    */
+      //calculate position of p on path, with local distance to anchor
+      p = PVectorOnCircularPath(i*divs+r, _d);
 
-    anchor = new PVector(c.width/2, c.height/2);
-    for (int i = 0; i<n; i++) {
-      d = 200+sin(i+r)*50; //oscillate distance value to create wavy mandalas
-      p = PVectorOnCircularPath(i*divs+r, d); //calculate path with p
-      //anchor is added to p, as we need to calculate if
+      //anchor is added to p, as we need to calculate if p is inside the limits
       p.add(anchor);
-      //graphics will only be processed if inside the limit area
-      if (p.x >= lim_l && p.x <= lim_r && p.y >= lim_t && p.y <= lim_b) {
-        //to calculate the angle, we make another PVector with a slight offset on the path
-        PVector pp = PVectorOnCircularPath(i*divs+dir+.25f, d);
+      //graphics will only be processed if p is inside the limits
+      if (c.isWithinLimits(p)) {
+        //to calculate the angle of each graphic, we make another PVector with a slight offset on the path
+        PVector pp = PVectorOnCircularPath(i*divs+r+.25f, d);
         pp.add(anchor);
         float angle = atan2(p.y-pp.y, p.x-pp.x);
 
@@ -306,13 +387,33 @@ class Mandala {
         c.pushMatrix();
         c.translate(p.x, p.y);
         c.rotate(angle);
-        c.fill(255);
-        c.rect(0, 0, 100, 100);
-        c.point(0, 15);
+        c.image(g_array[g_i], 0, 0, g_array[g_i].width*g_s, g_array[g_i].height*g_s);
         c.popMatrix();
       }
+      /*
+      the graphic displayed at each p of the mandala is chosen by g_i.
+      Every time a new graphic has been put into the mandala, the counter increases by 1.
+      There's a rollover g_i is larger than the number of items in g_array. */
+      g_i = rollOver(g_i+1, 0, g_array.length);
     }
+    c.fill(255);
+    c.rect(c.center.x, c.center.y, 100, 100);
   }
+}
+
+//rollover of float value between a lower and upper value
+public float rollOver(float input, float edge0, float edge1) {
+  float out = input;
+  if (input > edge1) out = edge0 + input -edge1;
+  else if(input <= edge0) out = edge1 + input -edge0;
+  return out;
+}
+
+public int rollOver(int input, int edge0, int edge1) {
+  int out = input;
+  if (input >= edge1) out = edge0 + input - edge1;
+  else if(input <= edge0) out = edge1 + input - edge0;
+  return out;
 }
 
 public PVector PVectorOnCircularPath(float angle, float distance) {
@@ -324,6 +425,62 @@ public PVector PVectorOnCircularPath(float angle, float distance) {
 public float calcHypotenuse(float a, float b) {
   float c = sqrt(pow(a, 2) + pow(b, 2));
   return c;
+}
+
+//returns array of n normalized perlin noise values
+public float[] noiseArray(int _n) {
+  float[] array = new float[_n];
+  for (int i = 0; i<_n; i++) array[i] = noise(i);
+  return array;
+}
+//same, with multiplying value
+public float[] noiseArray(int _n, float multiplier) {
+  float[] array = noiseArray(_n);
+  for (int i = 0; i<_n; i++) array[i] *= multiplier;
+  return array;
+}
+
+public float wiggleFloat(float amount, float speed) {
+  return sin(millis()*speed)*amount;
+}
+
+public int wiggleInt(float amount, float speed) {
+  return round(sin(millis()*speed)*amount);
+}
+
+public int[] scaleToFill(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the largest for scaling
+  the output dimensions to FILL the destination
+  */
+  float scale = max(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
+}
+
+public int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
+  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
+  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
+  /*
+  calculate the scaling ratios for both axis, and choose the SMALLEST for scaling
+  the output dimensions to FIT the destination
+  */
+  float scale = min(dest.x/in.x, dest.y/in.y);
+  int out_w = round(in_w *scale);
+  int out_h = round(in_h *scale);
+  int off_x = (dest_w - out_w) / 2;
+  int off_y = (dest_h - out_h) / 2;
+  println("offset x:", off_x, "offset y:", off_y);
+
+  int[] out = {off_x, off_y, out_w, out_h};
+  return out;
 }
 class Ribbon {
   float p; //progress along x axis
@@ -378,7 +535,7 @@ class Viewport {
   PVector canvas_offset = new PVector(0,0); //canvas pos within viewport
   PGraphics bg; //background customized for canvas
 
-  Viewport(PGraphics pg, int vsize, int vpx, int vpy) {
+  Viewport(int vsize, int vpx, int vpy) {
     size = vsize;
     position = new PVector(vpx, vpy);
   }
@@ -402,24 +559,15 @@ class Viewport {
     popMatrix();
   }
 
-  public void resize(PGraphics pg) {
+  public void update(PGraphics pg) {
     int[] dims = scaleToFit(pg.width, pg.height, size, size);
     canvas_offset = new PVector(dims[0], dims[1]);
     canvas_width = dims[2];
-    canvas_height =dims[3];
+    canvas_height = dims[3];
     bg = createAlphaBackground(canvas_width, canvas_height);
-
-    //set the limits a bit outside of the canvas edges
-    //to avoid "popping"
-    lim_l = -50;
-    lim_r = c.width+50;
-    lim_t = -50;
-    lim_b = c.height+50;
-    println("limits:", lim_l, lim_r, lim_t, lim_b);
   }
 
   public PGraphics createAlphaBackground(int w, int h) {
-
     PGraphics abg = createGraphics(w, h, P2D);
     int s = 10; // size of square
     abg.beginDraw();
@@ -451,52 +599,6 @@ class Viewport {
     x = canvas_offset.x;
     triangle(x, y, x-5, y, x, y+5);
   }
-}
-
-public void updateCanvas() {
-  c = createGraphics(cw, ch, P3D);
-  vp.resize(c);
-}
-
-public void updateCanvas(int w, int h) {
-  c = createGraphics(w, h, P3D);
-  c = createGraphics(w, h, P3D);
-  vp.resize(c);
-}
-
-public int[] scaleToFill(int in_w, int in_h, int dest_w, int dest_h) {
-  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
-  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
-  /*
-  calculate the scaling ratios for both axis, and choose the largest for scaling
-  the output dimensions to FILL the destination
-  */
-  float scale = max(dest.x/in.x, dest.y/in.y);
-  int out_w = round(in_w *scale);
-  int out_h = round(in_h *scale);
-  int off_x = (dest_w - out_w) / 2;
-  int off_y = (dest_h - out_h) / 2;
-
-  int[] out = {off_x, off_y, out_w, out_h};
-  return out;
-}
-
-public int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
-  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
-  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
-  /*
-  calculate the scaling ratios for both axis, and choose the SMALLEST for scaling
-  the output dimensions to FIT the destination
-  */
-  float scale = min(dest.x/in.x, dest.y/in.y);
-  int out_w = round(in_w *scale);
-  int out_h = round(in_h *scale);
-  int off_x = (dest_w - out_w) / 2;
-  int off_y = (dest_h - out_h) / 2;
-  println("offset x:", off_x, "offset y:", off_y);
-
-  int[] out = {off_x, off_y, out_w, out_h};
-  return out;
 }
 public void controlSetup() {
   cp5 = new ControlP5(this);
@@ -745,14 +847,14 @@ public void field_cw(String theText) {
   int value = evalFieldInput1(theText, cw, cp5.getController("field_cw"));
   if (value > 0) {
     cw = value;
-    updateCanvas();
+    c = new Layer(cw, ch);
   }
 }
 public void field_ch(String theText) {
   int value = evalFieldInput1(theText, ch, cp5.getController("field_ch"));
   if (value > 0) {
     ch = value;
-    updateCanvas();
+    c = new Layer(cw, ch);
   }
 }
 

@@ -6,7 +6,7 @@ class Viewport {
   PVector canvas_offset = new PVector(0,0); //canvas pos within viewport
   PGraphics bg; //background customized for canvas
 
-  Viewport(PGraphics pg, int vsize, int vpx, int vpy) {
+  Viewport(int vsize, int vpx, int vpy) {
     size = vsize;
     position = new PVector(vpx, vpy);
   }
@@ -30,24 +30,15 @@ class Viewport {
     popMatrix();
   }
 
-  void resize(PGraphics pg) {
+  void update(PGraphics pg) {
     int[] dims = scaleToFit(pg.width, pg.height, size, size);
     canvas_offset = new PVector(dims[0], dims[1]);
     canvas_width = dims[2];
-    canvas_height =dims[3];
+    canvas_height = dims[3];
     bg = createAlphaBackground(canvas_width, canvas_height);
-
-    //set the limits a bit outside of the canvas edges
-    //to avoid "popping"
-    lim_l = -50;
-    lim_r = c.width+50;
-    lim_t = -50;
-    lim_b = c.height+50;
-    println("limits:", lim_l, lim_r, lim_t, lim_b);
   }
 
   PGraphics createAlphaBackground(int w, int h) {
-
     PGraphics abg = createGraphics(w, h, P2D);
     int s = 10; // size of square
     abg.beginDraw();
@@ -79,50 +70,4 @@ class Viewport {
     x = canvas_offset.x;
     triangle(x, y, x-5, y, x, y+5);
   }
-}
-
-void updateCanvas() {
-  c = createGraphics(cw, ch, P3D);
-  vp.resize(c);
-}
-
-void updateCanvas(int w, int h) {
-  c = createGraphics(w, h, P3D);
-  c = createGraphics(w, h, P3D);
-  vp.resize(c);
-}
-
-int[] scaleToFill(int in_w, int in_h, int dest_w, int dest_h) {
-  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
-  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
-  /*
-  calculate the scaling ratios for both axis, and choose the largest for scaling
-  the output dimensions to FILL the destination
-  */
-  float scale = max(dest.x/in.x, dest.y/in.y);
-  int out_w = round(in_w *scale);
-  int out_h = round(in_h *scale);
-  int off_x = (dest_w - out_w) / 2;
-  int off_y = (dest_h - out_h) / 2;
-
-  int[] out = {off_x, off_y, out_w, out_h};
-  return out;
-}
-
-int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
-  PVector in = new PVector((float)in_w, (float)in_h); //vector of input dimensions
-  PVector dest = new PVector((float)dest_w, (float)dest_h); //vector of destination dimensions
-  /*
-  calculate the scaling ratios for both axis, and choose the SMALLEST for scaling
-  the output dimensions to FIT the destination
-  */
-  float scale = min(dest.x/in.x, dest.y/in.y);
-  int out_w = round(in_w *scale);
-  int out_h = round(in_h *scale);
-  int off_x = (dest_w - out_w) / 2;
-  int off_y = (dest_h - out_h) / 2;
-  println("offset x:", off_x, "offset y:", off_y);
-
-  int[] out = {off_x, off_y, out_w, out_h};
-  return out;
 }

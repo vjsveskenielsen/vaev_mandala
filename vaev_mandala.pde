@@ -25,9 +25,8 @@ boolean log_midi = true, log_osc = true;
 int port = 9999;
 String ip;
 
-PGraphics c;
+Layer c;
 int cw = 1920, ch = 1080; //canvas dimensions
-float lim_l, lim_r, lim_t, lim_b; //limits for graphics to be drawn within
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -46,8 +45,6 @@ PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
 PImage ribbon, logo, bushel;
 
-PVector cc; //canvas center
-
 void settings() {
   size(960, 540, P3D);
 }
@@ -58,21 +55,19 @@ void setup() {
   midi_devices = midi.availableInputs();
   controlSetup();
   updateOSC(port);
-  c = createGraphics(cw, ch, P3D);
-  vp = new Viewport(c, 400, 50, 70);
-  vp.resize(c);
+  c = new Layer(cw, ch);
+  vp = new Viewport(400, 50, 70);
+  vp.update(c);
+
   syphonserver = new SyphonServer(this, syphon_name);
 
-  //create syphon output
-  cc = new PVector(c.width/2, c.height/2);
-
   loadGraphics();
-
+/*
   corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
   corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
-
+*/
 // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   mandalas.add(new Mandala(carrots, 34, -.2, PI, .1*PI, .0003, 700, .8));
   //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
@@ -106,12 +101,13 @@ void drawGraphics() {
   c.beginDraw();
   c.background(255, 224, 74);
   c.imageMode(CENTER);
-  c.image(logo, c.width/2, c.height/2);
+  //c.image(logo, c.width/2, c.height/2);
 
   for (Mandala m : mandalas){
     m.update();
     m.display();
   }
+/*
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
     ribbons[i].display();
@@ -119,15 +115,8 @@ void drawGraphics() {
   for (Corner cnr : corners) {
     cnr.display();
   }
+*/
   c.endDraw();
-}
-
-float wiggleFloat(float amount, float speed) {
-  return sin(millis()*speed)*amount;
-}
-
-int wiggleInt(float amount, float speed) {
-  return round(sin(millis()*speed)*amount);
 }
 
 void displayFrameRate(){
