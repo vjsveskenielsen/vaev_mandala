@@ -72,6 +72,14 @@ public class Layer extends PGraphics3D {
     if (px >= limits.left && px <= limits.right && py >= limits.top && py <= limits.bottom) return true;
     else return false;
   }
+
+  void setLimits(int margin) {
+    //add margin to all limits (negative value expands, positive contracts)
+    limits.setLeft(margin);
+    limits.setTop(margin);
+    limits.setRight(this.width-margin);
+    limits.setBottom(this.height-margin);
+  }
 }
 
 class Limits {

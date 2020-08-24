@@ -246,6 +246,7 @@ public void field_cw(String theText) {
   if (value > 0) {
     cw = value;
     c = new Layer(cw, ch);
+    vp.update(c);
   }
 }
 public void field_ch(String theText) {
@@ -253,6 +254,7 @@ public void field_ch(String theText) {
   if (value > 0) {
     ch = value;
     c = new Layer(cw, ch);
+    vp.update(c);
   }
 }
 

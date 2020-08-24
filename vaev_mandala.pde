@@ -12,6 +12,7 @@ import java.util.*;
 MidiBus midi;
 String[] midi_devices;
 OscP5 oscP5;
+ControlP5Arranger cp5A; //custom ControlP5Arranger object
 ControlP5 cp5;
 CallbackListener cb;
 Textfield field_cw, field_ch, field_syphon_name, field_osc_port, field_osc_address;
@@ -53,15 +54,18 @@ void setup() {
   log = new Log();
 
   midi_devices = midi.availableInputs();
+  cp5A = new ControlP5Arranger(500, 70, 3, 2); //new Arranger with grid of x by y anchors
   controlSetup();
+
   updateOSC(port);
   c = new Layer(cw, ch);
+  c.setLimits(-200);
   vp = new Viewport(400, 50, 70);
   vp.update(c);
 
   syphonserver = new SyphonServer(this, syphon_name);
 
-  loadGraphics();
+  loadGraphics(); // load all graphics from /data
 /*
   corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
   corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
@@ -69,13 +73,14 @@ void setup() {
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
 // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  mandalas.add(new Mandala(carrots, 34, -.2, PI, .1*PI, .0003, 700, .8));
+  mandalas.add(new Mandala("Mandala1", carrots, 14, 0.0, PI, .1*PI, .0003, 700, .8));
   //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
   //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
   //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
   //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
 
   for (int i = 0; i<ribbons.length; i++) {
+    //add 4 ribbons, each angled 90 degrees from the previous
     Ribbon r = new Ribbon(HALF_PI*i, 1., new PVector(10, 10));
     ribbons[i] = r;
   }
@@ -93,8 +98,9 @@ void draw() {
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
+
   log.update();
-    displayFrameRate();
+  displayFrameRate();
 }
 
 void drawGraphics() {
@@ -120,10 +126,11 @@ void drawGraphics() {
 }
 
 void displayFrameRate(){
-  String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [fps %6.2f]", width, height, frameRate);
+  String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [fps %6.2f]", c.width, c.height, frameRate);
   surface.setTitle(txt_fps);
 }
 
+//take an xy position over the viewport, map it to a canvas_offset
 PVector mapXYToCanvas(int x_in, int y_in, Viewport viewport, PGraphics pg) {
   int x_min = round(viewport.position.x + viewport.canvas_offset.x);
   int x_max = x_min + viewport.canvas_width;

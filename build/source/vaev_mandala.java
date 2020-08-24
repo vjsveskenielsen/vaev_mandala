@@ -39,6 +39,7 @@ Vaev app for Assens
 MidiBus midi;
 String[] midi_devices;
 OscP5 oscP5;
+ControlP5Arranger cp5A; //custom ControlP5Arranger object
 ControlP5 cp5;
 CallbackListener cb;
 Textfield field_cw, field_ch, field_syphon_name, field_osc_port, field_osc_address;
@@ -77,18 +78,22 @@ public void settings() {
 }
 
 public void setup() {
+  frameRate(30);
   log = new Log();
 
   midi_devices = midi.availableInputs();
+  cp5A = new ControlP5Arranger(500, 70, 3, 2); //new Arranger with grid of x by y anchors
   controlSetup();
+
   updateOSC(port);
   c = new Layer(cw, ch);
+  c.setLimits(-200);
   vp = new Viewport(400, 50, 70);
   vp.update(c);
 
   syphonserver = new SyphonServer(this, syphon_name);
 
-  loadGraphics();
+  loadGraphics(); // load all graphics from /data
 /*
   corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
   corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
@@ -96,13 +101,14 @@ public void setup() {
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
 // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  mandalas.add(new Mandala(carrots, 34, -.2f, PI, .1f*PI, .0003f, 700, .8f));
+  mandalas.add(new Mandala("Mandala1", carrots, 14, 0.0f, PI, .1f*PI, .0003f, 700, .8f));
   //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
   //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
   //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
   //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
 
   for (int i = 0; i<ribbons.length; i++) {
+    //add 4 ribbons, each angled 90 degrees from the previous
     Ribbon r = new Ribbon(HALF_PI*i, 1.f, new PVector(10, 10));
     ribbons[i] = r;
   }
@@ -120,8 +126,9 @@ public void draw() {
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
+
   log.update();
-    displayFrameRate();
+  displayFrameRate();
 }
 
 public void drawGraphics() {
@@ -147,10 +154,11 @@ public void drawGraphics() {
 }
 
 public void displayFrameRate(){
-  String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [fps %6.2f]", width, height, frameRate);
+  String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [fps %6.2f]", c.width, c.height, frameRate);
   surface.setTitle(txt_fps);
 }
 
+//take an xy position over the viewport, map it to a canvas_offset
 public PVector mapXYToCanvas(int x_in, int y_in, Viewport viewport, PGraphics pg) {
   int x_min = round(viewport.position.x + viewport.canvas_offset.x);
   int x_max = x_min + viewport.canvas_width;
@@ -163,6 +171,58 @@ public PVector mapXYToCanvas(int x_in, int y_in, Viewport viewport, PGraphics pg
     out = new PVector(x,y);
   }
   return out;
+}
+class ControlP5Arranger {
+  int x = 0;
+  int y = 0;
+  int sliderwidth = 80;
+  int sliderheight = 20;
+  int margin = 5;
+  int groupwidth = 120;
+  PVector[] anchors;
+  int anchor_index = 0;
+  int groupheight = 150;
+
+  //anchors[0] x, anchors[0] y, n anchors on x axis, n anchors on y axis
+  ControlP5Arranger(int ax, int ay, int nx, int ny) {
+    anchors = generateAnchors(nx, groupwidth+margin, ny, groupheight+margin, ax, ay);
+  }
+
+  public void goToNextAnchor() {
+    anchor_index++;
+  }
+
+  public PVector getAnchor() {
+    if (anchor_index >= 0 && anchor_index < anchors.length) return anchors[anchor_index];
+    else return new PVector(0, 0);
+  }
+
+  public PVector[] generateAnchors(int nx, int w, int ny, int h, int xoff, int yoff) {
+    PVector[] out = new PVector[nx*ny];
+    int index = 0;
+    for (int i = 0; i<ny; i++) { //for every rows of ny rows
+      for (int j = 0; j<nx; j++) { // and every column of nx columns
+        out[index] = new PVector(j*w+xoff, i*h+yoff); //add coordinates to anchors[] at index
+        index++; //increase index
+      }
+    }
+    return out;
+  }
+  public void setX(int input) {
+    x = input;
+  }
+  public void setY(int input) {
+    y = input;
+  }
+  public void setXY(int inputx, int inputy) {
+    x = inputx;
+    y = inputy;
+  }
+
+  public void addXY(int inputx, int inputy) {
+    x += inputx;
+    y += inputy;
+  }
 }
 class Corner {
   PVector pos;
@@ -263,6 +323,14 @@ public class Layer extends PGraphics3D {
     if (px >= limits.left && px <= limits.right && py >= limits.top && py <= limits.bottom) return true;
     else return false;
   }
+
+  public void setLimits(int margin) {
+    //add margin to all limits (negative value expands, positive contracts)
+    limits.setLeft(margin);
+    limits.setTop(margin);
+    limits.setRight(this.width-margin);
+    limits.setBottom(this.height-margin);
+  }
 }
 
 class Limits {
@@ -312,6 +380,8 @@ public String zeroFormat(int input) {
   return output;
 }
 class Mandala {
+  Group controlGroup;
+
   PImage[] g_array;
   int g; // what graphic to use from g_array[]
 
@@ -322,12 +392,11 @@ class Mandala {
   int n; // iterations
   float divs; // n angle divisions on circle
 
-  float g_s = 1; //normalized graphics scale for each graphic
-  float scale = 1; //master scale for all graphics
+  float scale; //master scale for all graphics
   float a; // angle
 
   float r_s; //normalized rotation speed
-  float r = 0;
+  float r = 0; //rotation value
 
   PVector anchor; //Mandala anchor (point of origin)
   float d = 0; //normalized distance of p (position) from anchor to d_m
@@ -336,7 +405,7 @@ class Mandala {
   float[] d_limits;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  Mandala(PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
+  Mandala(String name, PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
     n = _n;
     w_s = _w_s;
     w_a = _w_a;
@@ -348,19 +417,45 @@ class Mandala {
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
+
+    controlGroup = cp5.addGroup(name)
+    .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
+    .setWidth(cp5A.groupwidth)
+    .activateEvent(true)
+    .setBackgroundColor(color(255, 80))
+    .setLabel(name)
+    ;
+
+    cp5A.goToNextAnchor();
+    cp5A.addXY(0, cp5A.margin);
+    cp5.addSlider(name + "_" + "scale")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 2.0f )
+    .plugTo( this, "setScale" )
+    .setValue( 1.0f )
+    .setLabel("scale")
+    .setGroup(controlGroup)
+    ;
+    cp5A.addXY(0, cp5A.sliderheight);
+
+    controlGroup.setBackgroundHeight(cp5A.groupheight);
+    cp5A.setXY(0,0); //reset xy for next group of controls
+  }
+
+  public void setScale(float input) {
+    scale = input;
   }
 
   public void update() {
     r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
     d = rollOver(d+d_s, 0.0f, d_max); //move mandala inwards/outwards
-    anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
-
+    //anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
   }
 
   public void display() {
     PVector p = new PVector(0, 0); //position of each graphic
     int g_i = 0; //counter for choosing graphic from g_array
-
+    float s = scale; // graphics scale for each graphic
     //draw graphics on path
     for (int i = 0; i<n; i++) { //for every n
       float _d = d; //create local distance value (for further math fuckery)
@@ -368,8 +463,8 @@ class Mandala {
       _d += abs(sin(i+r-1)*20);
 
       //scale each graphic down when near anchor or max_d
-      if (_d < d_limits[i]) g_s *= _d/d_limits[i];
-      else if (_d > d_max-d_limits[i]) g_s *= map(_d, d_max-d_limits[i], d_max, 1.0f, 0.0f);
+      if (_d < d_limits[i]) s *= _d/d_limits[i];
+      else if (_d > d_max-d_limits[i]) s *= map(_d, d_max-d_limits[i], d_max, 1.0f, 0.0f);
 
       //calculate position of p on path, with local distance to anchor
       p = PVectorOnCircularPath(i*divs+r, _d);
@@ -387,7 +482,7 @@ class Mandala {
         c.pushMatrix();
         c.translate(p.x, p.y);
         c.rotate(angle);
-        c.image(g_array[g_i], 0, 0, g_array[g_i].width*g_s, g_array[g_i].height*g_s);
+        c.image(g_array[g_i], 0, 0, g_array[g_i].width*s, g_array[g_i].height*s);
         c.popMatrix();
       }
       /*
@@ -396,8 +491,6 @@ class Mandala {
       There's a rollover g_i is larger than the number of items in g_array. */
       g_i = rollOver(g_i+1, 0, g_array.length);
     }
-    c.fill(255);
-    c.rect(c.center.x, c.center.y, 100, 100);
   }
 }
 
@@ -848,6 +941,7 @@ public void field_cw(String theText) {
   if (value > 0) {
     cw = value;
     c = new Layer(cw, ch);
+    vp.update(c);
   }
 }
 public void field_ch(String theText) {
@@ -855,6 +949,7 @@ public void field_ch(String theText) {
   if (value > 0) {
     ch = value;
     c = new Layer(cw, ch);
+    vp.update(c);
   }
 }
 
