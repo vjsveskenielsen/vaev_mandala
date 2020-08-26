@@ -38,6 +38,12 @@ float[] noiseArray(int _n, float multiplier) {
   return array;
 }
 
+float[] noiseArray(int _n, float edge0, float edge1) {
+  float[] array = noiseArray(_n);
+  for (int i = 0; i<_n; i++) array[i] = map(array[i], 0, 1, edge0, edge1);
+  return array;
+}
+
 float wiggleFloat(float amount, float speed) {
   return sin(millis()*speed)*amount;
 }

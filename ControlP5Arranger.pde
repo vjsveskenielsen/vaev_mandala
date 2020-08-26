@@ -1,14 +1,24 @@
 class ControlP5Arranger {
   int x = 0;
   int y = 0;
-  int sliderwidth = 80;
+  int sliderwidth = 100;
   int sliderheight = 20;
   int knobsize = 50;
-  int margin = 5;
+  int margin = 15;
   int groupwidth = 120;
   PVector[] anchors;
   int anchor_index = 0;
   int groupheight = 150;
+
+  void style1(String con_name) {
+    Controller con = cp5.getController(con_name);
+    if con.
+    con.setHeight(cp5A.sliderheight);
+    con.setWidth(sliderwidth);
+    con.setId(0);
+    con.getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    con.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+  }
 
   //anchors[0] x, anchors[0] y, n anchors on x axis, n anchors on y axis
   ControlP5Arranger(int ax, int ay, int nx, int ny) {

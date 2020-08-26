@@ -298,15 +298,3 @@ void ribbons_s(float value) {
     ribbons[i].setSpeed(value);
   }
 }
-
-void carrots_r_s(float value){
-  for (Mandala m : mandalas) {
-    if (m.g_array == carrots) m.r_s = value;
-  }
-}
-
-void carrots_w_a(float value){
-  for (Mandala m : mandalas) {
-    if (m.g_array == carrots) m.w_a = value;
-  }
-}

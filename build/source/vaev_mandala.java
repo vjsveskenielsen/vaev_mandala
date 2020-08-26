@@ -10,6 +10,7 @@ import oscP5.*;
 import netP5.*; 
 import processing.net.*; 
 import java.util.*; 
+import de.looksgood.ani.*; 
 import processing.core.PApplet; 
 import processing.core.PGraphics; 
 import codeanticode.syphon.*; 
@@ -36,8 +37,10 @@ Vaev app for Assens
 
 
 
+
 MidiBus midi;
 String[] midi_devices;
+
 OscP5 oscP5;
 ControlP5Arranger cp5A; //custom ControlP5Arranger object
 ControlP5 cp5;
@@ -71,6 +74,7 @@ PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
 
 public void settings() {
@@ -78,6 +82,7 @@ public void settings() {
 }
 
 public void setup() {
+    Ani.init(this);
   log = new Log();
 
   midi_devices = midi.availableInputs();
@@ -99,11 +104,8 @@ public void setup() {
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
-  mandalas.add(new Mandala("Mandala1", carrots));
-  //mandalas.add(new Mandala("Mandala2", leaves));
-  //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
-  //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
-  //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
+  mandalas.add(new Mandala("Mandala1"));
+  //mandalas.add(new Mandala("Mandala2"));
 
   for (int i = 0; i<ribbons.length; i++) {
     //add 4 ribbons, each angled 90 degrees from the previous
@@ -137,17 +139,17 @@ public void drawGraphics() {
 
   for (Mandala m : mandalas){
     m.update();
-    //m.display();
+    m.display();
   }
-/*
+
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
-    ribbons[i].display();
+    //ribbons[i].display();
   }
   for (Corner cnr : corners) {
-    cnr.display();
+    //cnr.display();
   }
-*/
+
   c.endDraw();
 }
 
@@ -173,14 +175,23 @@ public PVector mapXYToCanvas(int x_in, int y_in, Viewport viewport, PGraphics pg
 class ControlP5Arranger {
   int x = 0;
   int y = 0;
-  int sliderwidth = 80;
+  int sliderwidth = 100;
   int sliderheight = 20;
   int knobsize = 50;
-  int margin = 5;
+  int margin = 15;
   int groupwidth = 120;
   PVector[] anchors;
   int anchor_index = 0;
   int groupheight = 150;
+
+  public void style1(String con_name) {
+    Controller con = cp5.getController(con_name);
+    con.setHeight(cp5A.sliderheight);
+    con.setWidth(sliderwidth);
+    con.setId(0);
+    con.getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    con.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+  }
 
   //anchors[0] x, anchors[0] y, n anchors on x axis, n anchors on y axis
   ControlP5Arranger(int ax, int ay, int nx, int ny) {
@@ -383,14 +394,14 @@ public String zeroFormat(int input) {
 }
 class Mandala {
   Group controlGroup;
-
-  PImage[] g_array;
-  int g; // what graphic to use from g_array[]
+  String name;
+  int current_graphics = 0;
 
   float w_s; //wigglespeed
   float w_a; //wiggle amount
   float wiggle;
 
+  int max_n = 50;
   int n; // iterations
   float divs; // n angle divisions on circle
 
@@ -404,12 +415,14 @@ class Mandala {
   float d_norm = 0.5f; //normalized distance of p (position) from anchor to d_m
   float d_s = 10; //speed of movement between anchor and d_max
   float d_max; //maximum distance possible within canvas
+  float d_limit;
   float[] d_limits;
+  float mod_freq, mod_amount, mod_time = 0, mod_rate;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  Mandala(String name, PImage[] _g_array) {
+  Mandala(String _name) {
+    name = _name;
     divs = TWO_PI/n;
-    g_array = _g_array;
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
@@ -422,18 +435,31 @@ class Mandala {
     .setLabel(name)
     ;
 
-    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
-    cp5.addSlider(name + "_" + "n")
+    cp5A.addXY(5, 5);
+    cp5.addSlider(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(5, 50)
+    .setRange(0, mandala_graphics.length-1)
+    .plugTo( this, "chooseGraphics" )
+    .setValue(0)
+    .setLabel("graphics")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "graphics");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "n")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(5, max_n)
     .plugTo( this, "setN" )
     .setValue(15)
     .setLabel("n")
     .setGroup(controlGroup)
     ;
+    cp5A.style1(name + "/" + "n");
+
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
-    cp5.addSlider(name + "_" + "scale")
+    cp5.addSlider(name + "/" + "scale")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(0.0f, 2.0f )
     .plugTo( this, "setScale" )
@@ -441,9 +467,10 @@ class Mandala {
     .setLabel("scale")
     .setGroup(controlGroup)
     ;
+    cp5A.style1(name + "/" + "scale");
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
-    cp5.addSlider(name + "_" + "rotation_speed")
+    cp5.addSlider(name + "/" + "rotation_speed")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(-0.01f, 0.01f )
     .plugTo( this, "setRotationSpeed" )
@@ -451,6 +478,7 @@ class Mandala {
     .setLabel("rotation_speed")
     .setGroup(controlGroup)
     ;
+    cp5A.style1(name + "/" + "rotation_speed");
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "distance_speed")
@@ -462,8 +490,55 @@ class Mandala {
     .setGroup(controlGroup)
     .setId(0)
     ;
-    cp5.getController(name + "/" + "distance_speed").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-    cp5.getController(name + "/" + "distance_speed").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    cp5A.style1(name + "/" + "distance_speed");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "distance_limit")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 0.75f )
+    .plugTo( this, "setDistanceLimit" )
+    .setValue( 0.25f )
+    .setLabel("distance_limit")
+    .setGroup(controlGroup)
+    .setId(0)
+    ;
+    cp5A.style1(name + "/" + "distance_limit");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "mod_freq")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 10 )
+    .plugTo( this, "setModulationFrequency" )
+    .setValue( 0 )
+    .setLabel("mod_freq")
+    .setGroup(controlGroup)
+    .setId(0)
+    ;
+    cp5A.style1(name + "/" + "mod_freq");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "mod_amount")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 0.5f )
+    .plugTo( this, "setModulationAmount" )
+    .setValue( 0.25f )
+    .setLabel("mod_amount")
+    .setGroup(controlGroup)
+    .setId(0)
+    ;
+    cp5A.style1(name + "/" + "mod_amount");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "mod_rate")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 0.5f )
+    .plugTo( this, "setModulationRate" )
+    .setValue( 0.25f )
+    .setLabel("mod_rate")
+    .setGroup(controlGroup)
+    .setId(0)
+    ;
+    cp5A.style1(name + "/" + "mod_rate");
 
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
@@ -482,57 +557,90 @@ class Mandala {
     d_s = input;
   }
 
+  public void setDistanceLimit(float input) {
+    d_limit = input*d_max;
+    d_limits = noiseArray(max_n, d_limit*.5f, d_limit);
+  }
+
   public void setN(int input) {
-    n = input;
+    n = input + (input%mandala_graphics[current_graphics].length); //adds remainder needed to maintain alternating pattern
     divs = TWO_PI/n;
-    d_limits = noiseArray(n, 0);
+  }
+
+  public void setModulationFrequency(int input) {
+    if (input != mod_freq) Ani.to(this, abs(input-mod_freq), "mod_freq", input, Ani.SINE_IN_OUT);
+  }
+
+  public void setModulationAmount(float input) {
+    mod_amount = input*d_max;
+  }
+
+  public void setModulationRate(float input) {
+    mod_rate = input;
+  }
+
+  public void chooseGraphics(int input) {
+    if (input != current_graphics) current_graphics = input;
+    println(input);
   }
 
   public void update() {
     r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
+    //move mandala "ring" inwards/outwards
     d_norm = rollOver(d_norm+d_s, 0.0f, 1.0f);
-    distance = d_norm*d_max; //move mandala inwards/outwards
+    mod_time = rollOver(mod_time+mod_rate, 0, TWO_PI);
     //anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
   }
 
   public void display() {
-    PVector p = new PVector(0, 0); //position of each graphic
-    int g_i = 0; //counter for choosing graphic from g_array
-    float s = scale; // graphics scale for each graphic
-    //draw graphics on path
-    for (int i = 0; i<n; i++) { //for every n
-      float _d = distance; //create local distance value (for further math fuckery)
-      //oscillate distance (positive only) value to create wavy mandalas
-      //_d += abs(sin(i+r-1)*20);
+    if (scale > 0) {
+      PVector p = new PVector(0, 0); //position of each graphic
+      int g_i = 0; //counter for choosing graphic from g_array
+      float s; // graphics scale for each graphic
+      float d; //distance value for each graphic
+      float pda; //distance from p to anchor
 
-      //scale each graphic down when near anchor or max_d
-      if (_d < d_limits[i]) s *= _d/d_limits[i];
-      else if (_d > d_max-d_limits[i]) s *= map(_d, d_max-d_limits[i], d_max, 1.0f, 0.0f);
+      //draw graphics on path
+      for (int i = 0; i<n; i++) { //for every n
+        s = scale; //set to original scale
+        d = d_norm*d_max; //set original distance
+        d += sin(i*divs*mod_freq + mod_time) *mod_amount; //modulate distance
+        d = rollOver(d, 0, d_max); //rollover value so it stays within d_max
 
-      //calculate position of p on path, with local distance to anchor
-      p = PVectorOnCircularPath(i*divs+r, _d);
+        //calculate position of p on path
+        p = PVectorOnCircularPath(i*divs+r, d);
 
-      //anchor is added to p, as we need to calculate if p is inside the limits
-      p.add(anchor);
-      //graphics will only be processed if p is inside the limits
-      if (c.isWithinLimits(p)) {
-        //to calculate the angle of each graphic, we make another PVector with a slight offset on the path
-        PVector pp = PVectorOnCircularPath(i*divs+r+.25f, _d);
-        pp.add(anchor);
-        float angle = atan2(p.y-pp.y, p.x-pp.x);
+        //anchor is added to p, as we need to calculate if p is inside the limits
+        p.add(anchor);
 
-        //draw graphics, orient along path
-        c.pushMatrix();
-        c.translate(p.x, p.y);
-        c.rotate(angle);
-        c.image(g_array[g_i], 0, 0, g_array[g_i].width*s, g_array[g_i].height*s);
-        c.popMatrix();
+        //scale each graphic down when near anchor or max_d
+        pda = p.dist(anchor);
+
+        if (pda>5){ //if graphic is more than 15 pixels {
+          if (pda < d_limits[i]) s *= pda/d_limits[i];
+          else if (pda > d_max-d_limits[i]) s *= map(pda, d_max-d_limits[i], d_max, 1.f, 0.f);
+
+          //graphics will only be processed if p is inside the limits
+          if (c.isWithinLimits(p)) {
+            //to calculate the angle of each graphic, we make another PVector with a slight offset on the path
+            PVector pp = PVectorOnCircularPath(i*divs+r+.25f, d);
+            pp.add(anchor);
+            float angle = atan2(p.y-pp.y, p.x-pp.x);
+
+            //draw graphics, orient along path
+            c.pushMatrix();
+            c.translate(p.x, p.y);
+            c.rotate(angle);
+            c.image(mandala_graphics[current_graphics][g_i], 0, 0, mandala_graphics[current_graphics][g_i].width*s, mandala_graphics[current_graphics][g_i].height*s);
+            c.popMatrix();
+          }
+        }
+        /*
+        the graphic displayed at each p of the mandala is chosen by g_i.
+        Every time a new graphic has been put into the mandala, the counter increases by 1.
+        There's a rollover g_i is larger than the number of items in g_array. */
+        g_i = rollOver(g_i+1, 0, mandala_graphics[current_graphics].length);
       }
-      /*
-      the graphic displayed at each p of the mandala is chosen by g_i.
-      Every time a new graphic has been put into the mandala, the counter increases by 1.
-      There's a rollover g_i is larger than the number of items in g_array. */
-      g_i = rollOver(g_i+1, 0, g_array.length);
     }
   }
 }
@@ -573,6 +681,12 @@ public float[] noiseArray(int _n) {
 public float[] noiseArray(int _n, float multiplier) {
   float[] array = noiseArray(_n);
   for (int i = 0; i<_n; i++) array[i] *= multiplier;
+  return array;
+}
+
+public float[] noiseArray(int _n, float edge0, float edge1) {
+  float[] array = noiseArray(_n);
+  for (int i = 0; i<_n; i++) array[i] = map(array[i], 0, 1, edge0, edge1);
   return array;
 }
 
@@ -1036,18 +1150,6 @@ public void ribbons_s(float value) {
     ribbons[i].setSpeed(value);
   }
 }
-
-public void carrots_r_s(float value){
-  for (Mandala m : mandalas) {
-    if (m.g_array == carrots) m.r_s = value;
-  }
-}
-
-public void carrots_w_a(float value){
-  for (Mandala m : mandalas) {
-    if (m.g_array == carrots) m.w_a = value;
-  }
-}
 public void loadGraphics() {
   carrots[0] = loadImage("carrot01.png");
   carrots[1] = loadImage("carrot02.png");
@@ -1134,7 +1236,7 @@ public void setControllerValueWithOSC(Controller con, OscMessage theOscMessage) 
     log.appendText("int value: " + Integer.toString(value));
   }
 
-  else if (theOscMessage.checkTypetag("f")) {
+  if (theOscMessage.checkTypetag("f")) {
     float value = theOscMessage.get(0).floatValue();
     value = constrain(value, con.getMin(), con.getMax());
     con.setValue(value);

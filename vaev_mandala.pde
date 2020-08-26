@@ -8,9 +8,11 @@ import oscP5.*;
 import netP5.*;
 import processing.net.*;
 import java.util.*;
+import de.looksgood.ani.*;
 
 MidiBus midi;
 String[] midi_devices;
+
 OscP5 oscP5;
 ControlP5Arranger cp5A; //custom ControlP5Arranger object
 ControlP5 cp5;
@@ -44,6 +46,7 @@ PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
 
 void settings() {
@@ -51,6 +54,7 @@ void settings() {
 }
 
 void setup() {
+    Ani.init(this);
   log = new Log();
 
   midi_devices = midi.availableInputs();
@@ -72,11 +76,8 @@ void setup() {
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
-  mandalas.add(new Mandala("Mandala1", carrots));
-  //mandalas.add(new Mandala("Mandala2", leaves));
-  //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
-  //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
-  //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
+  mandalas.add(new Mandala("Mandala1"));
+  //mandalas.add(new Mandala("Mandala2"));
 
   for (int i = 0; i<ribbons.length; i++) {
     //add 4 ribbons, each angled 90 degrees from the previous
@@ -110,17 +111,17 @@ void drawGraphics() {
 
   for (Mandala m : mandalas){
     m.update();
-    //m.display();
+    m.display();
   }
-/*
+
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
-    ribbons[i].display();
+    //ribbons[i].display();
   }
   for (Corner cnr : corners) {
-    cnr.display();
+    //cnr.display();
   }
-*/
+
   c.endDraw();
 }
 

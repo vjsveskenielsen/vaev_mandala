@@ -46,7 +46,7 @@ void setControllerValueWithOSC(Controller con, OscMessage theOscMessage) {
     log.appendText("int value: " + Integer.toString(value));
   }
 
-  else if (theOscMessage.checkTypetag("f")) {
+  if (theOscMessage.checkTypetag("f")) {
     float value = theOscMessage.get(0).floatValue();
     value = constrain(value, con.getMin(), con.getMax());
     con.setValue(value);
