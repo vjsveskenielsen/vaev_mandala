@@ -142,7 +142,7 @@ void controlSetup() {
   Add your own controls below. Use .setId(-1) to make controller
   unreachable by OSC.
   */
-  xoff = 500;
+  xoff = 800;
   yoff = 100;
   int s_width = 100;
   int s_height = 20;
@@ -154,30 +154,6 @@ void controlSetup() {
     .setValue(1)
     .setLabel("ribbon speed")
     ;
-    cp5.getController("ribbons_s").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-    cp5.getController("ribbons_s").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-
-  yoff += 50;
-  cp5.addSlider("carrots_r_s")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(-.5, .5)
-    .setValue(0.0)
-    .setLabel("carrot rotation")
-    ;
-  cp5.getController("carrots_r_s").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  cp5.getController("carrots_r_s").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-
-  yoff += 50;
-  cp5.addSlider("carrots_w_a")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(0., TWO_PI)
-    .setValue(0.0)
-    .setLabel("carrot wiggle amount")
-    ;
-  cp5.getController("carrots_w_a").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  cp5.getController("carrots_w_a").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
 }
 

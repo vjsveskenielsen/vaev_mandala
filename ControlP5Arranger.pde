@@ -3,6 +3,7 @@ class ControlP5Arranger {
   int y = 0;
   int sliderwidth = 80;
   int sliderheight = 20;
+  int knobsize = 50;
   int margin = 5;
   int groupwidth = 120;
   PVector[] anchors;

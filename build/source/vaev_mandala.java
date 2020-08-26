@@ -78,7 +78,6 @@ public void settings() {
 }
 
 public void setup() {
-  frameRate(30);
   log = new Log();
 
   midi_devices = midi.availableInputs();
@@ -100,9 +99,8 @@ public void setup() {
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
-// graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  mandalas.add(new Mandala("Mandala1", carrots, 14, 0.0f, PI, .1f*PI, .0003f, 700, .8f));
-  //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
+  mandalas.add(new Mandala("Mandala1", carrots));
+  //mandalas.add(new Mandala("Mandala2", leaves));
   //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
   //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
   //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
@@ -139,7 +137,7 @@ public void drawGraphics() {
 
   for (Mandala m : mandalas){
     m.update();
-    m.display();
+    //m.display();
   }
 /*
   for (int i = 0; i<ribbons.length; i++) {
@@ -177,6 +175,7 @@ class ControlP5Arranger {
   int y = 0;
   int sliderwidth = 80;
   int sliderheight = 20;
+  int knobsize = 50;
   int margin = 5;
   int groupwidth = 120;
   PVector[] anchors;
@@ -372,6 +371,9 @@ class Log {
     String time = zeroFormat(hour()) + ":" + zeroFormat(minute()) + ":" + zeroFormat(second());
     current_log = time + " " + input;
   }
+  public void appendText(String input) {
+    current_log += " " + input;
+  }
 }
 //function for formatting int values as strings: 1 becomes "01", 2 becomes "02"
 public String zeroFormat(int input) {
@@ -393,26 +395,20 @@ class Mandala {
   float divs; // n angle divisions on circle
 
   float scale; //master scale for all graphics
-  float a; // angle
 
-  float r_s; //normalized rotation speed
+  float r_s; //rotation speed
   float r = 0; //rotation value
 
   PVector anchor; //Mandala anchor (point of origin)
-  float d = 0; //normalized distance of p (position) from anchor to d_m
+  float distance;
+  float d_norm = 0.5f; //normalized distance of p (position) from anchor to d_m
   float d_s = 10; //speed of movement between anchor and d_max
   float d_max; //maximum distance possible within canvas
   float[] d_limits;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  Mandala(String name, PImage[] _g_array, int _n, float _r_s, float _a, float _w_a, float _w_s, int _d, float _g_s) {
-    n = _n;
-    w_s = _w_s;
-    w_a = _w_a;
+  Mandala(String name, PImage[] _g_array) {
     divs = TWO_PI/n;
-    a = _a;
-    d = _d;
-    r_s = _r_s;
     g_array = _g_array;
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
@@ -426,8 +422,17 @@ class Mandala {
     .setLabel(name)
     ;
 
-    cp5A.goToNextAnchor();
-    cp5A.addXY(0, cp5A.margin);
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "_" + "n")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(5, 50)
+    .plugTo( this, "setN" )
+    .setValue(15)
+    .setLabel("n")
+    .setGroup(controlGroup)
+    ;
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "_" + "scale")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(0.0f, 2.0f )
@@ -436,19 +441,57 @@ class Mandala {
     .setLabel("scale")
     .setGroup(controlGroup)
     ;
-    cp5A.addXY(0, cp5A.sliderheight);
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "_" + "rotation_speed")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-0.01f, 0.01f )
+    .plugTo( this, "setRotationSpeed" )
+    .setValue( 1.0f )
+    .setLabel("rotation_speed")
+    .setGroup(controlGroup)
+    ;
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "distance_speed")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-0.01f, 0.01f )
+    .plugTo( this, "setDistanceSpeed" )
+    .setValue( 0.0f )
+    .setLabel("distance_speed")
+    .setGroup(controlGroup)
+    .setId(0)
+    ;
+    cp5.getController(name + "/" + "distance_speed").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    cp5.getController(name + "/" + "distance_speed").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
+    cp5A.goToNextAnchor(); //move to next anchor for next group of controls
   }
 
   public void setScale(float input) {
     scale = input;
   }
 
+  public void setRotationSpeed(float input) {
+    r_s = input;
+  }
+
+  public void setDistanceSpeed(float input) {
+    d_s = input;
+  }
+
+  public void setN(int input) {
+    n = input;
+    divs = TWO_PI/n;
+    d_limits = noiseArray(n, 0);
+  }
+
   public void update() {
     r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
-    d = rollOver(d+d_s, 0.0f, d_max); //move mandala inwards/outwards
+    d_norm = rollOver(d_norm+d_s, 0.0f, 1.0f);
+    distance = d_norm*d_max; //move mandala inwards/outwards
     //anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
   }
 
@@ -458,9 +501,9 @@ class Mandala {
     float s = scale; // graphics scale for each graphic
     //draw graphics on path
     for (int i = 0; i<n; i++) { //for every n
-      float _d = d; //create local distance value (for further math fuckery)
+      float _d = distance; //create local distance value (for further math fuckery)
       //oscillate distance (positive only) value to create wavy mandalas
-      _d += abs(sin(i+r-1)*20);
+      //_d += abs(sin(i+r-1)*20);
 
       //scale each graphic down when near anchor or max_d
       if (_d < d_limits[i]) s *= _d/d_limits[i];
@@ -474,7 +517,7 @@ class Mandala {
       //graphics will only be processed if p is inside the limits
       if (c.isWithinLimits(p)) {
         //to calculate the angle of each graphic, we make another PVector with a slight offset on the path
-        PVector pp = PVectorOnCircularPath(i*divs+r+.25f, d);
+        PVector pp = PVectorOnCircularPath(i*divs+r+.25f, _d);
         pp.add(anchor);
         float angle = atan2(p.y-pp.y, p.x-pp.x);
 
@@ -837,7 +880,7 @@ public void controlSetup() {
   Add your own controls below. Use .setId(-1) to make controller
   unreachable by OSC.
   */
-  xoff = 500;
+  xoff = 800;
   yoff = 100;
   int s_width = 100;
   int s_height = 20;
@@ -849,30 +892,6 @@ public void controlSetup() {
     .setValue(1)
     .setLabel("ribbon speed")
     ;
-    cp5.getController("ribbons_s").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-    cp5.getController("ribbons_s").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-
-  yoff += 50;
-  cp5.addSlider("carrots_r_s")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(-.5f, .5f)
-    .setValue(0.0f)
-    .setLabel("carrot rotation")
-    ;
-  cp5.getController("carrots_r_s").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  cp5.getController("carrots_r_s").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-
-  yoff += 50;
-  cp5.addSlider("carrots_w_a")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(0.f, TWO_PI)
-    .setValue(0.0f)
-    .setLabel("carrot wiggle amount")
-    ;
-  cp5.getController("carrots_w_a").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
-  cp5.getController("carrots_w_a").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
 
 }
 
@@ -1081,29 +1100,46 @@ public void updateIP() {
 public void oscEvent(OscMessage theOscMessage) {
   String str_in[] = split(theOscMessage.addrPattern(), '/');
   String txt = "got osc message: " + theOscMessage.addrPattern();
-  if (str_in.length == 3) {
-    if (str_in[1].equals(osc_address) &&
-    cp5.getController(str_in[2]) != null &&
-    cp5.getController(str_in[2]).getId() != -1)
-    {
-      Controller con = cp5.getController(str_in[2]);
-
-      if (theOscMessage.checkTypetag("i")) {
-        int value = theOscMessage.get(0).intValue();
-        value = constrain(value, (int)con.getMin(), (int)con.getMax());
-        con.setValue(value);
-        txt += " int value: " + Integer.toString(value);
+  if (log_osc) log.setText(txt);
+  Controller con;
+  if (str_in[1].equals(osc_address)) {
+    // parse osc_address/controllername/value
+    if (str_in.length == 3) {
+      if (cp5.getController(str_in[2]) != null &&
+      cp5.getController(str_in[2]).getId() != -1)
+      {
+        con = cp5.getController(str_in[2]);
+        setControllerValueWithOSC(con, theOscMessage);
       }
-
-      else if (theOscMessage.checkTypetag("f")) {
-        float value = theOscMessage.get(0).floatValue();
-        value = constrain(value, con.getMin(), con.getMax());
-        con.setValue(value);
-        txt += " float value: " + Float.toString(value);
+    }
+    // parse osc_address/groupname/controllername/value
+    //stupid hotfixed way of going about this
+    else if (str_in.length == 4) {
+      String parsed_name = str_in[2] + "/" + str_in[3];
+      if (cp5.getController(parsed_name) != null &&
+      cp5.getGroup(str_in[2]).getController(parsed_name).getId() != -1)
+      {
+        con = cp5.getController(parsed_name);
+        setControllerValueWithOSC(con, theOscMessage);
       }
     }
   }
-  if (log_osc) log.setText(txt);
+}
+
+public void setControllerValueWithOSC(Controller con, OscMessage theOscMessage) {
+  if (theOscMessage.checkTypetag("i")) {
+    int value = theOscMessage.get(0).intValue();
+    value = constrain(value, (int)con.getMin(), (int)con.getMax());
+    con.setValue(value);
+    log.appendText("int value: " + Integer.toString(value));
+  }
+
+  else if (theOscMessage.checkTypetag("f")) {
+    float value = theOscMessage.get(0).floatValue();
+    value = constrain(value, con.getMin(), con.getMax());
+    con.setValue(value);
+    log.appendText(" float value: " + Float.toString(value));
+  }
 }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "vaev_mandala" };

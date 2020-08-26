@@ -72,9 +72,8 @@ void setup() {
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
 */
-// graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  mandalas.add(new Mandala("Mandala1", carrots, 14, 0.0, PI, .1*PI, .0003, 700, .8));
-  //mandalas.add(new Mandala(leaves, 40, .3, .0, .3*PI, .0003, 200, 1.));
+  mandalas.add(new Mandala("Mandala1", carrots));
+  //mandalas.add(new Mandala("Mandala2", leaves));
   //mandalas.add(new Mandala(leaves, 80, .3, .0, .3*PI, .0003, 500, 1.));
   //mandalas.add(new Mandala(bushels, 68, .3, .0, .3*PI, .0003, 300, 1.));
   //mandalas.add(new Mandala(flowers, 80, .3, .0, .3*PI, .0003, 600, 1.));
@@ -111,7 +110,7 @@ void drawGraphics() {
 
   for (Mandala m : mandalas){
     m.update();
-    m.display();
+    //m.display();
   }
 /*
   for (int i = 0; i<ribbons.length; i++) {

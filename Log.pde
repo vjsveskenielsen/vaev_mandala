@@ -15,6 +15,9 @@ class Log {
     String time = zeroFormat(hour()) + ":" + zeroFormat(minute()) + ":" + zeroFormat(second());
     current_log = time + " " + input;
   }
+  void appendText(String input) {
+    current_log += " " + input;
+  }
 }
 //function for formatting int values as strings: 1 becomes "01", 2 becomes "02"
 String zeroFormat(int input) {
