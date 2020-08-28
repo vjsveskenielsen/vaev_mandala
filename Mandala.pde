@@ -11,7 +11,8 @@ class Mandala {
   int n; // iterations
   float divs; // n angle divisions on circle
 
-  float scale; //master scale for all graphics
+  float m_scale; //master scale for all graphics
+  float a_scale = 1.0; //scale to be animated on chooseGraphics()
 
   float r_s; //rotation speed
   float r = 0; //rotation value
@@ -25,6 +26,9 @@ class Mandala {
   float[] d_limits;
   float mod_freq, mod_amount, mod_time = 0, mod_rate;
 
+  MyControlListener listener;
+  RadioButton radio;
+
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(String _name) {
     name = _name;
@@ -32,6 +36,8 @@ class Mandala {
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
+
+    listener = new MyControlListener();
 
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
@@ -42,20 +48,25 @@ class Mandala {
     ;
 
     cp5A.addXY(5, 5);
-    cp5.addSlider(name + "/" + "graphics")
+    cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(0, mandala_graphics.length-1)
-    .plugTo( this, "chooseGraphics" )
+    .addItem("carrots", 0)
+    .addItem("leaves", 1)
+    .addItem("bushels", 2)
+    .addItem("flowers", 3)
     .setValue(0)
-    .setLabel("graphics")
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
     .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
     ;
-    cp5A.style1(name + "/" + "graphics");
+    //cp5A.style1(name + "/" + "graphics");
 
-    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5A.addXY(0, cp5A.margin + 50);
     cp5.addSlider(name + "/" + "n")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(5, max_n)
+    .setRange(5, max_n-1)
     .plugTo( this, "setN" )
     .setValue(15)
     .setLabel("n")
@@ -127,7 +138,7 @@ class Mandala {
     .setPosition(cp5A.x, cp5A.y)
     .setRange(0.0, 0.5 )
     .plugTo( this, "setModulationAmount" )
-    .setValue( 0.25 )
+    .setValue( 0.0 )
     .setLabel("mod_amount")
     .setGroup(controlGroup)
     .setId(0)
@@ -139,7 +150,7 @@ class Mandala {
     .setPosition(cp5A.x, cp5A.y)
     .setRange(0.0, 0.5 )
     .plugTo( this, "setModulationRate" )
-    .setValue( 0.25 )
+    .setValue( 0.0 )
     .setLabel("mod_rate")
     .setGroup(controlGroup)
     .setId(0)
@@ -152,7 +163,7 @@ class Mandala {
   }
 
   void setScale(float input) {
-    scale = input;
+    m_scale = input;
   }
 
   void setRotationSpeed(float input) {
@@ -186,10 +197,26 @@ class Mandala {
   }
 
   void chooseGraphics(int input) {
+    current_graphics = input;
+  }
+
+  void scaleDown() {
+    Ani.to(this, 2.0, "a_scale", 0.0, Ani.QUAD_IN, "onEnd:scaleUp");
+  }
+  void scaleDownChangeGraphics(int input) {
+    //if the input different from current_graphics and no animation is in progress
     if (input != current_graphics) {
-      current_graphics = input;
-      Ani.to(this, 5, scale)
+      //animate the scale and callback to scaleUp
+      Ani.to(this, 1.0, "a_scale", 0.0, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
     }
+  }
+
+  void scaleUp() {
+    Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
+  }
+    void scaleUpChangeGraphics() {
+    Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
+    current_graphics = (int)cp5.getController(name + "/graphics").getValue();
   }
 
   void update() {
@@ -198,10 +225,11 @@ class Mandala {
     d_norm = rollOver(d_norm+d_s, 0.0, 1.0);
     mod_time = rollOver(mod_time+mod_rate, 0, TWO_PI);
     //anchor = mapXYToCanvas(mouseX, mouseY, vp, c);
+    m_scale = cp5.getController(name + "/" + "scale").getValue()*a_scale;
   }
 
   void display() {
-    if (scale > 0) {
+    if (m_scale > 0) {
       PVector p = new PVector(0, 0); //position of each graphic
       int g_i = 0; //counter for choosing graphic from g_array
       float s; // graphics scale for each graphic
@@ -210,7 +238,7 @@ class Mandala {
 
       //draw graphics on path
       for (int i = 0; i<n; i++) { //for every n
-        s = scale; //set to original scale
+        s = m_scale; //set to original scale
         d = d_norm*d_max; //set original distance
         d += sin(i*divs*mod_freq + mod_time) *mod_amount; //modulate distance
         d = rollOver(d, 0, d_max); //rollover value so it stays within d_max
@@ -251,4 +279,11 @@ class Mandala {
       }
     }
   }
+}
+// hotfix for radio button that wont plug to shit
+class MyControlListener implements ControlListener {
+  public void controlEvent(ControlEvent theEvent) {
+    println(theEvent.getController().getValue());
+  }
+
 }

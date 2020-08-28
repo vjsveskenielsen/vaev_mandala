@@ -12,7 +12,6 @@ class ControlP5Arranger {
 
   void style1(String con_name) {
     Controller con = cp5.getController(con_name);
-    if con.
     con.setHeight(cp5A.sliderheight);
     con.setWidth(sliderwidth);
     con.setId(0);

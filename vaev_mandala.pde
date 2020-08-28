@@ -49,12 +49,15 @@ PImage[] flowers = new PImage[4];
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
 
+AniSequence ani_scale;
+
 void settings() {
   size(960, 540, P3D);
 }
 
 void setup() {
-    Ani.init(this);
+  Ani.init(this);
+
   log = new Log();
 
   midi_devices = midi.availableInputs();
@@ -70,12 +73,12 @@ void setup() {
   syphonserver = new SyphonServer(this, syphon_name);
 
   loadGraphics(); // load all graphics from /data
-/*
+  /*
   corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
   corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
   corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
   corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
-*/
+  */
   mandalas.add(new Mandala("Mandala1"));
   //mandalas.add(new Mandala("Mandala2"));
 
@@ -116,8 +119,9 @@ void drawGraphics() {
 
   for (int i = 0; i<ribbons.length; i++) {
     ribbons[i].update();
-    //ribbons[i].display();
+    ribbons[i].display();
   }
+  ribbons[0].overlap();
   for (Corner cnr : corners) {
     //cnr.display();
   }

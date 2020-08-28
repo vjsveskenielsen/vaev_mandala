@@ -23,12 +23,19 @@ class Ribbon {
     max_n = ceil(max/(ribbon.width*sc));
   }
   void update() {
-     if (p > ribbon.width*sc*max_n) p = 0;
-     else if (p < 0) p = ribbon.width*sc*max_n;
-     else p+=s;
+     p = rollOver(p+s, 0, ribbon.width*sc*max_n);
   }
 
   void setSpeed(float input) {s = input;}
+
+  void overlap() {
+    c.pushMatrix();
+    c.translate(pos.x, pos.y);
+    c.translate(offset.x, offset.y);
+    int i = -max_n/2;
+    c.image(ribbon, p+(i*ribbon.width*sc), 0, ribbon.width*sc, ribbon.height*sc);
+    c.popMatrix();
+  }
 
   void display() {
     c.imageMode(CORNER);
