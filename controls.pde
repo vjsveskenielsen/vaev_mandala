@@ -142,18 +142,6 @@ void controlSetup() {
   Add your own controls below. Use .setId(-1) to make controller
   unreachable by OSC.
   */
-  xoff = 800;
-  yoff = 100;
-  int s_width = 100;
-  int s_height = 20;
-
-  cp5.addSlider("ribbons_s")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(-3, 3)
-    .setValue(1)
-    .setLabel("ribbon speed")
-    ;
 
 }
 
@@ -291,10 +279,3 @@ public void controlEvent(ControlEvent theEvent) {
 /*
 Custom control functions
 */
-
-
-void ribbons_s(float value) {
-  for (int i = 0; i<ribbons.length; i++) {
-    ribbons[i].setSpeed(value);
-  }
-}

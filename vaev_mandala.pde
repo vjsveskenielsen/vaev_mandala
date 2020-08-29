@@ -40,8 +40,7 @@ Log log;
 float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
 ArrayList<Corner> corners = new ArrayList();
-Ribbon[] ribbons = new Ribbon[4];
-Ribbon stripes;
+Ribbons ribbons;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
@@ -82,11 +81,12 @@ void setup() {
   mandalas.add(new Mandala("Mandala1"));
   //mandalas.add(new Mandala("Mandala2"));
 
-  for (int i = 0; i<ribbons.length; i++) {
-    //add 4 ribbons, each angled 90 degrees from the previous
-    Ribbon r = new Ribbon(HALF_PI*i, 1., new PVector(10, 10));
-    ribbons[i] = r;
-  }
+  // for (int i = 0; i<ribbons.length; i++) {
+  //   //add 4 ribbons, each angled 90 degrees from the previous
+  //   Ribbon r = new Ribbon(HALF_PI*i, 1., new PVector(10, 10));
+  //   ribbons[i] = r;
+  // }
+  ribbons = new Ribbons("Ribbons");
 }
 
 void draw() {
@@ -117,11 +117,9 @@ void drawGraphics() {
     m.display();
   }
 
-  for (int i = 0; i<ribbons.length; i++) {
-    ribbons[i].update();
-    ribbons[i].display();
-  }
-  ribbons[0].overlap();
+  ribbons.update();
+  ribbons.display();
+
   for (Corner cnr : corners) {
     //cnr.display();
   }
