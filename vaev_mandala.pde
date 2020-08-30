@@ -39,16 +39,14 @@ Log log;
 
 float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
-ArrayList<Corner> corners = new ArrayList();
 Ribbons ribbons;
+Corners corners;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
 PImage[] flowers = new PImage[4];
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
-
-AniSequence ani_scale;
 
 void settings() {
   size(960, 540, P3D);
@@ -72,12 +70,7 @@ void setup() {
   syphonserver = new SyphonServer(this, syphon_name);
 
   loadGraphics(); // load all graphics from /data
-  /*
-  corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
-  corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
-  corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
-  corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
-  */
+
   mandalas.add(new Mandala("Mandala1"));
   //mandalas.add(new Mandala("Mandala2"));
 
@@ -87,6 +80,7 @@ void setup() {
   //   ribbons[i] = r;
   // }
   ribbons = new Ribbons("Ribbons");
+  corners = new Corners("Corners");
 }
 
 void draw() {
@@ -120,9 +114,8 @@ void drawGraphics() {
   ribbons.update();
   ribbons.display();
 
-  for (Corner cnr : corners) {
-    //cnr.display();
-  }
+  corners.update();
+  corners.display();
 
   c.endDraw();
 }

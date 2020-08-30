@@ -123,8 +123,8 @@ class Ribbons {
   }
 
   void toggleRibbons(boolean theState) {
-    if (!theState) Ani.to(this.offset, 3.0, "y", -offset.y-graphics_height, Ani.BACK_IN);
-    else Ani.to(this.offset, 3.0, "y", cp5.getController(name+"/yoffset").getValue(), Ani.BOUNCE_OUT);
+    if (!theState) Ani.to(this.offset, 5.0, "y", -offset.y-graphics_height, Ani.BACK_IN);
+    else Ani.to(this.offset, 5.0, "y", cp5.getController(name+"/yoffset").getValue(), Ani.BACK_OUT);
   }
 
   void display(){

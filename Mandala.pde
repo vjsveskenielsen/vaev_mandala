@@ -16,6 +16,7 @@ class Mandala {
 
   float r_s; //rotation speed
   float r = 0; //rotation value
+  float orientation;
 
   PVector anchor; //Mandala anchor (point of origin)
   float distance;
@@ -63,7 +64,7 @@ class Mandala {
     ;
     //cp5A.style1(name + "/" + "graphics");
 
-    cp5A.addXY(0, cp5A.margin + 50);
+    cp5A.addXY(0, cp5A.margin + 60);
     cp5.addSlider(name + "/" + "n")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
@@ -96,6 +97,17 @@ class Mandala {
     .setGroup(controlGroup)
     ;
     cp5A.style1(name + "/" + "rotation_speed");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "orientation")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-PI, PI )
+    .plugTo( this, "setOrientation" )
+    .setValue( 0.0 )
+    .setLabel("orientation")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "orientation");
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "distance_speed")
@@ -148,7 +160,7 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "mod_rate")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(0.0, 0.5 )
+    .setRange(-0.5, 0.5 )
     .plugTo( this, "setModulationRate" )
     .setValue( 0.0 )
     .setLabel("mod_rate")
@@ -168,6 +180,10 @@ class Mandala {
 
   void setRotationSpeed(float input) {
     r_s = input;
+  }
+
+  void setOrientation(float input) {
+    orientation = input;
   }
 
   void setDistanceSpeed(float input) {
@@ -266,7 +282,7 @@ class Mandala {
             //draw graphics, orient along path
             c.pushMatrix();
             c.translate(p.x, p.y);
-            c.rotate(angle);
+            c.rotate(angle+orientation);
             c.image(mandala_graphics[current_graphics][g_i], 0, 0, mandala_graphics[current_graphics][g_i].width*s, mandala_graphics[current_graphics][g_i].height*s);
             c.popMatrix();
           }

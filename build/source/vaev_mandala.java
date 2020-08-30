@@ -67,8 +67,8 @@ Log log;
 
 float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
-ArrayList<Corner> corners = new ArrayList();
 Ribbons ribbons;
+Corners corners;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
@@ -115,6 +115,7 @@ public void setup() {
   //   ribbons[i] = r;
   // }
   ribbons = new Ribbons("Ribbons");
+  corners = new Corners("Corners");
 }
 
 public void draw() {
@@ -148,9 +149,8 @@ public void drawGraphics() {
   ribbons.update();
   ribbons.display();
 
-  for (Corner cnr : corners) {
-    //cnr.display();
-  }
+  corners.update();
+  corners.display();
 
   c.endDraw();
 }
@@ -259,6 +259,83 @@ class Corner {
     c.scale(head.x, head.y);
     c.image(b, 0,0, b.width*sc, b.height*sc);
     c.popMatrix();
+  }
+}
+class Corners {
+  String name;
+  Group controlGroup;
+  PVector[] corner_anchors = new PVector[4];
+  float[] corner_angles = new float[4];
+  float scale;
+  float graphics_width;
+  float graphics_height;
+
+  Corners(String _name){
+    name = _name;
+    calculateAnchors();
+    calculateAngles();
+
+    controlGroup = cp5.addGroup(name)
+    .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
+    .setWidth(cp5A.groupwidth)
+    .activateEvent(true)
+    .setBackgroundColor(color(255, 80))
+    .setLabel(name)
+    ;
+
+    cp5A.addXY(5, 5);
+    cp5.addSlider(name + "/" + "scale")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 2.0f )
+    .plugTo( this, "setScale" )
+    .setValue( scale )
+    .setLabel("scale")
+    .setGroup(controlGroup);
+    ;
+    controlGroup.setBackgroundHeight(cp5A.groupheight);
+    cp5A.setXY(0,0); //reset xy for next group of controls
+    cp5A.goToNextAnchor(); //move to next anchor for next group of controls
+  }
+
+  public void setScale(float input){
+    scale = input;
+  }
+  public void calculateAnchors() {
+    for (int i = 0; i<4; i++) {
+      switch(i) {
+        case 0: corner_anchors[0] = new PVector(-50,-50);
+        case 1: corner_anchors[1] = new PVector(c.width+50,-50);
+        case 2: corner_anchors[2] = new PVector(c.width+50, c.height+50);
+        case 3: corner_anchors[3] = new PVector(-50, c.height+50);
+      }
+    }
+  }
+
+  public void calculateAngles() {
+    float a = 0;
+    for (int i = 0; i<corner_angles.length; i++) {
+      corner_angles[i] = a + HALF_PI*i;
+    }
+  }
+
+  public void update() {
+
+  }
+
+  public void display(){
+    c.imageMode(CORNER);
+    for (int i = 0; i<corner_anchors.length; i++) {
+      c.pushMatrix();
+      c.translate(corner_anchors[i].x, corner_anchors[i].y);
+      c.rotate(corner_angles[i]);
+      for (int j = 1; j<bushels.length+1; j++){
+        int index = bushels.length-j;
+        c.rotate(-0.1f + 0.05f*i);
+        c.rotate(wiggleFloat(.05f, .001f*index));
+        c.image(bushels[index], 0, 0, bushels[index].width*scale, bushels[index].height*scale);
+      }
+      c.popMatrix();
+    }
   }
 }
 /* Example of a custom Layer class
@@ -412,6 +489,7 @@ class Mandala {
 
   float r_s; //rotation speed
   float r = 0; //rotation value
+  float orientation;
 
   PVector anchor; //Mandala anchor (point of origin)
   float distance;
@@ -459,7 +537,7 @@ class Mandala {
     ;
     //cp5A.style1(name + "/" + "graphics");
 
-    cp5A.addXY(0, cp5A.margin + 50);
+    cp5A.addXY(0, cp5A.margin + 60);
     cp5.addSlider(name + "/" + "n")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
@@ -492,6 +570,17 @@ class Mandala {
     .setGroup(controlGroup)
     ;
     cp5A.style1(name + "/" + "rotation_speed");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "orientation")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-PI, PI )
+    .plugTo( this, "setOrientation" )
+    .setValue( 0.0f )
+    .setLabel("orientation")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "orientation");
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "distance_speed")
@@ -544,7 +633,7 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "mod_rate")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(0.0f, 0.5f )
+    .setRange(-0.5f, 0.5f )
     .plugTo( this, "setModulationRate" )
     .setValue( 0.0f )
     .setLabel("mod_rate")
@@ -564,6 +653,10 @@ class Mandala {
 
   public void setRotationSpeed(float input) {
     r_s = input;
+  }
+
+  public void setOrientation(float input) {
+    orientation = input;
   }
 
   public void setDistanceSpeed(float input) {
@@ -662,7 +755,7 @@ class Mandala {
             //draw graphics, orient along path
             c.pushMatrix();
             c.translate(p.x, p.y);
-            c.rotate(angle);
+            c.rotate(angle+orientation);
             c.image(mandala_graphics[current_graphics][g_i], 0, 0, mandala_graphics[current_graphics][g_i].width*s, mandala_graphics[current_graphics][g_i].height*s);
             c.popMatrix();
           }
@@ -770,49 +863,6 @@ public int[] scaleToFit(int in_w, int in_h, int dest_w, int dest_h) {
 
   int[] out = {off_x, off_y, out_w, out_h};
   return out;
-}
-class Ribbon {
-  float p; //progress along x axis
-  float a; //angle
-  float s; // speed
-  PVector pos; //position
-  PVector offset; //ribbon offset from corner
-  float sc = .4f; //scaling
-  int max; //the side of the canvas that ribbon scrolls across
-  int max_n; //maximum number of ribbons needed to cover screen
-
-  //angle,
-  Ribbon(float _a, float _s, PVector _offset) {
-    s = _s;
-    a = _a;
-    offset = _offset;
-    //set pos according to orientation
-    //
-    if (a>0 && a<=HALF_PI){ pos = new PVector(c.width, 0); max = c.height; }
-    else if (a>HALF_PI && a<=PI){ pos = new PVector(c.width, c.height);max = c.width;}
-    else if (a>PI && a<=3*HALF_PI){ pos = new PVector(0, c.height); max = c.height;}
-    else {pos = new PVector(0, 0);max = c.width;}
-    //println(a);
-    max_n = ceil(max/(ribbon.width*sc));
-  }
-  public void update() {
-     p = rollOver(p+s, 0, ribbon.width*sc*max_n);
-  }
-
-  public void setSpeed(float input) {s = input;}
-
-  public void display() {
-    c.imageMode(CORNER);
-    c.pushMatrix();
-    c.translate(pos.x, pos.y);
-    c.rotate(a);
-    c.translate(offset.x, offset.y);
-
-    for (int i = -max_n; i<max_n; i++) {
-      c.image(ribbon, p+(i*ribbon.width*sc), 0, ribbon.width*sc, ribbon.height*sc);
-    }
-    c.popMatrix();
-  }
 }
 class Ribbons {
   String name;
@@ -939,8 +989,8 @@ class Ribbons {
   }
 
   public void toggleRibbons(boolean theState) {
-    if (!theState) Ani.to(this.offset, 3.0f, "y", -offset.y-graphics_height, Ani.BACK_IN);
-    else Ani.to(this.offset, 3.0f, "y", cp5.getController(name+"/yoffset").getValue(), Ani.BOUNCE_OUT);
+    if (!theState) Ani.to(this.offset, 5.0f, "y", -offset.y-graphics_height, Ani.BACK_IN);
+    else Ani.to(this.offset, 5.0f, "y", cp5.getController(name+"/yoffset").getValue(), Ani.BACK_OUT);
   }
 
   public void display(){
@@ -1178,18 +1228,6 @@ public void controlSetup() {
   Add your own controls below. Use .setId(-1) to make controller
   unreachable by OSC.
   */
-  xoff = 800;
-  yoff = 100;
-  int s_width = 100;
-  int s_height = 20;
-
-  cp5.addSlider("ribbons_s")
-    .setPosition(xoff, yoff)
-    .setSize(s_width, s_height)
-    .setRange(-3, 3)
-    .setValue(1)
-    .setLabel("ribbon speed")
-    ;
 
 }
 
