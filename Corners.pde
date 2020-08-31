@@ -39,11 +39,12 @@ class Corners {
   }
   void calculateAnchors() {
     for (int i = 0; i<4; i++) {
+      int margin =50;
       switch(i) {
-        case 0: corner_anchors[0] = new PVector(-50,-50);
-        case 1: corner_anchors[1] = new PVector(c.width+50,-50);
-        case 2: corner_anchors[2] = new PVector(c.width+50, c.height+50);
-        case 3: corner_anchors[3] = new PVector(-50, c.height+50);
+        case 0: corner_anchors[0] = new PVector(-margin,-margin);
+        case 1: corner_anchors[1] = new PVector(c.width+margin,-margin);
+        case 2: corner_anchors[2] = new PVector(c.width+margin, c.height+margin);
+        case 3: corner_anchors[3] = new PVector(-margin, c.height+margin);
       }
     }
   }
@@ -67,7 +68,7 @@ class Corners {
       c.rotate(corner_angles[i]);
       for (int j = 1; j<bushels.length+1; j++){
         int index = bushels.length-j;
-        c.rotate(-0.1 + 0.05*i);
+        c.rotate(-0.30 + 0.15*i);
         c.rotate(wiggleFloat(.05, .001*index));
         c.image(bushels[index], 0, 0, bushels[index].width*scale, bushels[index].height*scale);
       }

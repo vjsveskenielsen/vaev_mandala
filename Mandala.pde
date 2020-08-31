@@ -49,22 +49,6 @@ class Mandala {
     ;
 
     cp5A.addXY(5, 5);
-    cp5.addScrollableList(name + "/" + "graphics")
-    .setPosition(cp5A.x, cp5A.y)
-    .addItem("carrots", 0)
-    .addItem("leaves", 1)
-    .addItem("bushels", 2)
-    .addItem("flowers", 3)
-    .setValue(0)
-    .plugTo(this, "scaleDownChangeGraphics")
-    .setLabel("choose graphics")
-    .setGroup(controlGroup)
-    .setType(ControlP5.LIST)
-    .open()
-    ;
-    //cp5A.style1(name + "/" + "graphics");
-
-    cp5A.addXY(0, cp5A.margin + 60);
     cp5.addSlider(name + "/" + "n")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
@@ -112,9 +96,9 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "distance_speed")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(-0.01, 0.01 )
+    .setRange(-100, 100 )
     .plugTo( this, "setDistanceSpeed" )
-    .setValue( 0.0 )
+    .setValue( 0 )
     .setLabel("distance_speed")
     .setGroup(controlGroup)
     .setId(0)
@@ -169,6 +153,23 @@ class Mandala {
     ;
     cp5A.style1(name + "/" + "mod_rate");
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addScrollableList(name + "/" + "graphics")
+    .setPosition(cp5A.x, cp5A.y)
+    .addItem("carrots", 0)
+    .addItem("leaves", 1)
+    .addItem("bushels", 2)
+    .addItem("flowers", 3)
+    .setValue(0)
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
+    .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
+    ;
+    //cp5A.style1(name + "/" + "graphics");
+
+
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
     cp5A.goToNextAnchor(); //move to next anchor for next group of controls
@@ -186,10 +187,9 @@ class Mandala {
     orientation = input;
   }
 
-  void setDistanceSpeed(float input) {
-    d_s = input;
+  void setDistanceSpeed(int input) {
+    d_s = map(input,-100., 100., -0.01, 0.01);
   }
-
   void setDistanceLimit(float input) {
     d_limit = input*d_max;
     d_limits = noiseArray(max_n, d_limit*.5, d_limit);

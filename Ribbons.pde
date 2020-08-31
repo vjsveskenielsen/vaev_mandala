@@ -7,7 +7,9 @@ class Ribbons {
   PVector offset = new PVector(0,0);
   int[] ribbon_max_ns = new int[4];
   float dir;
-  float scale;
+
+  float m_scale;
+  float a_scale = 1.0; //scale to be animated on chooseGraphics()
   float graphics_width;
   float graphics_height;
 
@@ -15,8 +17,9 @@ class Ribbons {
 
   Ribbons(String _name) {
     name = _name;
-    PImage r = loadImage("ribbon1.png");
-    PImage[] _ribbon_graphics = { r };
+    PImage r1 = loadImage("ribbon1.png");
+    PImage r2 = loadImage("ribbon2.png");
+    PImage[] _ribbon_graphics = { r1, r2 };
     ribbon_graphics = _ribbon_graphics;
     calculateRibbons();
     calculateAnchors();
@@ -74,6 +77,19 @@ class Ribbons {
     .setGroup(controlGroup)
     ;
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addScrollableList(name + "/" + "graphics")
+    .setPosition(cp5A.x, cp5A.y)
+    .addItem("flowers", 0)
+    .addItem("tangents", 1)
+    .setValue(0)
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
+    .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
+    ;
+
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
     cp5A.goToNextAnchor(); //move to next anchor for next group of controls
@@ -82,6 +98,22 @@ class Ribbons {
   void update() {
     offset.x = rollOver(offset.x+dir, 0, graphics_width);
   }
+
+  void chooseGraphics(int input) {
+    current_graphics = input;
+  }
+
+  void scaleDownChangeGraphics(int input) {
+    //if the input different from current_graphics and no animation is in progress
+    if (input != current_graphics) {
+      //animate the scale and callback to scaleUp
+      Ani.to(this, 1.0, "a_scale", 0.0, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
+    }
+  }
+  void scaleUpChangeGraphics() {
+  Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
+  current_graphics = (int)cp5.getController(name + "/graphics").getValue();
+}
 
   void calculateAnchors() {
     for (int i = 0; i<4; i++) {
@@ -102,15 +134,15 @@ class Ribbons {
 
   void calculateRibbons() {
     PImage r = ribbon_graphics[current_graphics];
-    graphics_width = r.width*scale;
-    graphics_height = r.height*scale;
+    graphics_width = r.width*m_scale;
+    graphics_height = r.height*m_scale;
     for (int i = 0; i<4; i++) {
       ribbon_max_ns[i] = ceil(max(c.width, c.height)/graphics_width)+1;
     }
   }
 
   void setScale(float input) {
-    scale = input;
+    m_scale = input;
     calculateRibbons();
   }
 
@@ -133,15 +165,15 @@ class Ribbons {
       c.translate(ribbon_anchors[i].x, ribbon_anchors[i].y);
       c.rotate(ribbon_angles[i]);
       for (int n = -1; n<ribbon_max_ns[i]; n++) {
-        c.image(ribbon_graphics[current_graphics],graphics_width*n+offset.x,offset.y, graphics_width, graphics_height);
+        c.image(ribbon_graphics[current_graphics],graphics_width*n+offset.x,offset.y, graphics_width, graphics_height*a_scale);
       }
       c.popMatrix();
     }
     c.pushMatrix();
     c.translate(ribbon_anchors[0].x, ribbon_anchors[0].y);
     c.rotate(ribbon_angles[0]);//kind of redundant
-    c.image(ribbon_graphics[current_graphics], offset.x, offset.y, graphics_width, graphics_height);
-    c.image(ribbon_graphics[current_graphics], -graphics_width+offset.x, offset.y, graphics_width, graphics_height);
+    c.image(ribbon_graphics[current_graphics], offset.x, offset.y, graphics_width, graphics_height*a_scale);
+    c.image(ribbon_graphics[current_graphics], -graphics_width+offset.x, offset.y, graphics_width, graphics_height*a_scale);
     c.popMatrix();
   }
 }

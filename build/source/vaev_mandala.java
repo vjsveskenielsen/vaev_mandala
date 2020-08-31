@@ -76,10 +76,8 @@ PImage[] flowers = new PImage[4];
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
 
-AniSequence ani_scale;
-
 public void settings() {
-  size(960, 540, P3D);
+  size(1500, 540, P3D);
 }
 
 public void setup() {
@@ -88,7 +86,7 @@ public void setup() {
   log = new Log();
 
   midi_devices = midi.availableInputs();
-  cp5A = new ControlP5Arranger(500, 70, 3, 2); //new Arranger with grid of x by y anchors
+  cp5A = new ControlP5Arranger(500, 70, 5, 2); //new Arranger with grid of x by y anchors
   controlSetup();
 
   updateOSC(port);
@@ -100,14 +98,10 @@ public void setup() {
   syphonserver = new SyphonServer(this, syphon_name);
 
   loadGraphics(); // load all graphics from /data
-  /*
-  corners.add(new Corner(new PVector(0,0), new PVector(1,1)));
-  corners.add(new Corner(new PVector(c.width,0), new PVector(-1,1)));
-  corners.add(new Corner(new PVector(c.width,c.height), new PVector(-1,-1)));
-  corners.add(new Corner(new PVector(0,c.height), new PVector(1,-1)));
-  */
+
   mandalas.add(new Mandala("Mandala1"));
-  //mandalas.add(new Mandala("Mandala2"));
+  mandalas.add(new Mandala("Mandala2"));
+  mandalas.add(new Mandala("Mandala3"));
 
   // for (int i = 0; i<ribbons.length; i++) {
   //   //add 4 ribbons, each angled 90 degrees from the previous
@@ -236,31 +230,6 @@ class ControlP5Arranger {
     y += inputy;
   }
 }
-class Corner {
-  PVector pos;
-  PVector head; //heading - the direction of the bushel
-  float a;
-  PImage b = bushels[3];
-  float sc = 1.5f;
-  Corner(PVector _pos, PVector _head){
-    pos = _pos;
-    head = _head;
-    println(a);
-    int r = round(bushels.length-1);
-    a = 0;
-  }
-
-  public void display(){
-    c.imageMode(CORNER);
-    c.pushMatrix();
-    // position bushel with small offset
-    c.translate(pos.x+(head.x*-1*25*sc), pos.y+(head.y*-1*25*sc));
-    c.rotate(a+wiggleFloat(.05f, .001f));
-    c.scale(head.x, head.y);
-    c.image(b, 0,0, b.width*sc, b.height*sc);
-    c.popMatrix();
-  }
-}
 class Corners {
   String name;
   Group controlGroup;
@@ -302,11 +271,12 @@ class Corners {
   }
   public void calculateAnchors() {
     for (int i = 0; i<4; i++) {
+      int margin =50;
       switch(i) {
-        case 0: corner_anchors[0] = new PVector(-50,-50);
-        case 1: corner_anchors[1] = new PVector(c.width+50,-50);
-        case 2: corner_anchors[2] = new PVector(c.width+50, c.height+50);
-        case 3: corner_anchors[3] = new PVector(-50, c.height+50);
+        case 0: corner_anchors[0] = new PVector(-margin,-margin);
+        case 1: corner_anchors[1] = new PVector(c.width+margin,-margin);
+        case 2: corner_anchors[2] = new PVector(c.width+margin, c.height+margin);
+        case 3: corner_anchors[3] = new PVector(-margin, c.height+margin);
       }
     }
   }
@@ -330,7 +300,7 @@ class Corners {
       c.rotate(corner_angles[i]);
       for (int j = 1; j<bushels.length+1; j++){
         int index = bushels.length-j;
-        c.rotate(-0.1f + 0.05f*i);
+        c.rotate(-0.30f + 0.15f*i);
         c.rotate(wiggleFloat(.05f, .001f*index));
         c.image(bushels[index], 0, 0, bushels[index].width*scale, bushels[index].height*scale);
       }
@@ -522,22 +492,6 @@ class Mandala {
     ;
 
     cp5A.addXY(5, 5);
-    cp5.addScrollableList(name + "/" + "graphics")
-    .setPosition(cp5A.x, cp5A.y)
-    .addItem("carrots", 0)
-    .addItem("leaves", 1)
-    .addItem("bushels", 2)
-    .addItem("flowers", 3)
-    .setValue(0)
-    .plugTo(this, "scaleDownChangeGraphics")
-    .setLabel("choose graphics")
-    .setGroup(controlGroup)
-    .setType(ControlP5.LIST)
-    .open()
-    ;
-    //cp5A.style1(name + "/" + "graphics");
-
-    cp5A.addXY(0, cp5A.margin + 60);
     cp5.addSlider(name + "/" + "n")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
@@ -585,9 +539,9 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "distance_speed")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(-0.01f, 0.01f )
+    .setRange(-100, 100 )
     .plugTo( this, "setDistanceSpeed" )
-    .setValue( 0.0f )
+    .setValue( 0 )
     .setLabel("distance_speed")
     .setGroup(controlGroup)
     .setId(0)
@@ -642,6 +596,23 @@ class Mandala {
     ;
     cp5A.style1(name + "/" + "mod_rate");
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addScrollableList(name + "/" + "graphics")
+    .setPosition(cp5A.x, cp5A.y)
+    .addItem("carrots", 0)
+    .addItem("leaves", 1)
+    .addItem("bushels", 2)
+    .addItem("flowers", 3)
+    .setValue(0)
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
+    .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
+    ;
+    //cp5A.style1(name + "/" + "graphics");
+
+
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
     cp5A.goToNextAnchor(); //move to next anchor for next group of controls
@@ -659,10 +630,9 @@ class Mandala {
     orientation = input;
   }
 
-  public void setDistanceSpeed(float input) {
-    d_s = input;
+  public void setDistanceSpeed(int input) {
+    d_s = map(input,-100.f, 100.f, -0.01f, 0.01f);
   }
-
   public void setDistanceLimit(float input) {
     d_limit = input*d_max;
     d_limits = noiseArray(max_n, d_limit*.5f, d_limit);
@@ -873,7 +843,9 @@ class Ribbons {
   PVector offset = new PVector(0,0);
   int[] ribbon_max_ns = new int[4];
   float dir;
-  float scale;
+
+  float m_scale;
+  float a_scale = 1.0f; //scale to be animated on chooseGraphics()
   float graphics_width;
   float graphics_height;
 
@@ -881,8 +853,9 @@ class Ribbons {
 
   Ribbons(String _name) {
     name = _name;
-    PImage r = loadImage("ribbon1.png");
-    PImage[] _ribbon_graphics = { r };
+    PImage r1 = loadImage("ribbon1.png");
+    PImage r2 = loadImage("ribbon2.png");
+    PImage[] _ribbon_graphics = { r1, r2 };
     ribbon_graphics = _ribbon_graphics;
     calculateRibbons();
     calculateAnchors();
@@ -940,6 +913,19 @@ class Ribbons {
     .setGroup(controlGroup)
     ;
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addScrollableList(name + "/" + "graphics")
+    .setPosition(cp5A.x, cp5A.y)
+    .addItem("flowers", 0)
+    .addItem("tangents", 1)
+    .setValue(0)
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
+    .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
+    ;
+
     controlGroup.setBackgroundHeight(cp5A.groupheight);
     cp5A.setXY(0,0); //reset xy for next group of controls
     cp5A.goToNextAnchor(); //move to next anchor for next group of controls
@@ -948,6 +934,22 @@ class Ribbons {
   public void update() {
     offset.x = rollOver(offset.x+dir, 0, graphics_width);
   }
+
+  public void chooseGraphics(int input) {
+    current_graphics = input;
+  }
+
+  public void scaleDownChangeGraphics(int input) {
+    //if the input different from current_graphics and no animation is in progress
+    if (input != current_graphics) {
+      //animate the scale and callback to scaleUp
+      Ani.to(this, 1.0f, "a_scale", 0.0f, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
+    }
+  }
+  public void scaleUpChangeGraphics() {
+  Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
+  current_graphics = (int)cp5.getController(name + "/graphics").getValue();
+}
 
   public void calculateAnchors() {
     for (int i = 0; i<4; i++) {
@@ -968,15 +970,15 @@ class Ribbons {
 
   public void calculateRibbons() {
     PImage r = ribbon_graphics[current_graphics];
-    graphics_width = r.width*scale;
-    graphics_height = r.height*scale;
+    graphics_width = r.width*m_scale;
+    graphics_height = r.height*m_scale;
     for (int i = 0; i<4; i++) {
       ribbon_max_ns[i] = ceil(max(c.width, c.height)/graphics_width)+1;
     }
   }
 
   public void setScale(float input) {
-    scale = input;
+    m_scale = input;
     calculateRibbons();
   }
 
@@ -999,15 +1001,15 @@ class Ribbons {
       c.translate(ribbon_anchors[i].x, ribbon_anchors[i].y);
       c.rotate(ribbon_angles[i]);
       for (int n = -1; n<ribbon_max_ns[i]; n++) {
-        c.image(ribbon_graphics[current_graphics],graphics_width*n+offset.x,offset.y, graphics_width, graphics_height);
+        c.image(ribbon_graphics[current_graphics],graphics_width*n+offset.x,offset.y, graphics_width, graphics_height*a_scale);
       }
       c.popMatrix();
     }
     c.pushMatrix();
     c.translate(ribbon_anchors[0].x, ribbon_anchors[0].y);
     c.rotate(ribbon_angles[0]);//kind of redundant
-    c.image(ribbon_graphics[current_graphics], offset.x, offset.y, graphics_width, graphics_height);
-    c.image(ribbon_graphics[current_graphics], -graphics_width+offset.x, offset.y, graphics_width, graphics_height);
+    c.image(ribbon_graphics[current_graphics], offset.x, offset.y, graphics_width, graphics_height*a_scale);
+    c.image(ribbon_graphics[current_graphics], -graphics_width+offset.x, offset.y, graphics_width, graphics_height*a_scale);
     c.popMatrix();
   }
 }

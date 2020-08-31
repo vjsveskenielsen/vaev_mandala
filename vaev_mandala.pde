@@ -49,7 +49,7 @@ PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
 PImage ribbon, logo, bushel;
 
 void settings() {
-  size(960, 540, P3D);
+  size(1500, 540, P3D);
 }
 
 void setup() {
@@ -58,7 +58,7 @@ void setup() {
   log = new Log();
 
   midi_devices = midi.availableInputs();
-  cp5A = new ControlP5Arranger(500, 70, 3, 2); //new Arranger with grid of x by y anchors
+  cp5A = new ControlP5Arranger(500, 70, 5, 2); //new Arranger with grid of x by y anchors
   controlSetup();
 
   updateOSC(port);
@@ -72,7 +72,8 @@ void setup() {
   loadGraphics(); // load all graphics from /data
 
   mandalas.add(new Mandala("Mandala1"));
-  //mandalas.add(new Mandala("Mandala2"));
+  mandalas.add(new Mandala("Mandala2"));
+  mandalas.add(new Mandala("Mandala3"));
 
   // for (int i = 0; i<ribbons.length; i++) {
   //   //add 4 ribbons, each angled 90 degrees from the previous
