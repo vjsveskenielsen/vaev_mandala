@@ -57,7 +57,7 @@ int port = 9999;
 String ip;
 
 Layer c;
-int cw = 1920, ch = 1080; //canvas dimensions
+int cw = 1440, ch = 1080; //canvas dimensions
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -65,15 +65,16 @@ int syphon_clients_index; //current syphon client
 String syphon_name = "vaev", osc_address = syphon_name;
 Log log;
 
-float anim1;
 ArrayList<Mandala> mandalas = new ArrayList();
 Ribbons ribbons;
 Corners corners;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
-PImage[] bushels = new PImage[4];
-PImage[] flowers = new PImage[4];
-PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers};
+PImage[] bushels = new PImage[4];;
+PImage[] flowers = new PImage[4];;
+PImage[] mexiko = new PImage[1];;
+
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko};
 PImage ribbon, logo, bushel;
 
 public void settings() {
@@ -81,6 +82,13 @@ public void settings() {
 }
 
 public void setup() {
+  loadGraphics(); // load all graphics from /data
+  // for (int i = 0; i<mandala_graphics.length; i++) {
+  //   for (int j = 0; j<mandala_graphics[i].length; j++) {
+  //     println("tried mandala_graphics #", i, "with", mandala_graphics[i].length, "items, tried item", j);
+  //     image(mandala_graphics[i][j], 0,0, 400, 400);
+  //   }
+  // }
   Ani.init(this);
 
   log = new Log();
@@ -97,17 +105,10 @@ public void setup() {
 
   syphonserver = new SyphonServer(this, syphon_name);
 
-  loadGraphics(); // load all graphics from /data
-
   mandalas.add(new Mandala("Mandala1"));
   mandalas.add(new Mandala("Mandala2"));
   mandalas.add(new Mandala("Mandala3"));
 
-  // for (int i = 0; i<ribbons.length; i++) {
-  //   //add 4 ribbons, each angled 90 degrees from the previous
-  //   Ribbon r = new Ribbon(HALF_PI*i, 1., new PVector(10, 10));
-  //   ribbons[i] = r;
-  // }
   ribbons = new Ribbons("Ribbons");
   corners = new Corners("Corners");
 }
@@ -451,7 +452,7 @@ class Mandala {
   float wiggle;
 
   int max_n = 50;
-  int n; // iterations
+  int n = 15; // iterations
   float divs; // n angle divisions on circle
 
   float m_scale; //master scale for all graphics
@@ -476,10 +477,10 @@ class Mandala {
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(String _name) {
     name = _name;
-    divs = TWO_PI/n;
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
+    divs = TWO_PI/(float)n;
 
     listener = new MyControlListener();
 
@@ -496,7 +497,7 @@ class Mandala {
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
     .plugTo( this, "setN" )
-    .setValue(15)
+    .setValue(n)
     .setLabel("n")
     .setGroup(controlGroup)
     ;
@@ -603,6 +604,7 @@ class Mandala {
     .addItem("leaves", 1)
     .addItem("bushels", 2)
     .addItem("flowers", 3)
+    .addItem("mexiko", 4)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -640,7 +642,7 @@ class Mandala {
 
   public void setN(int input) {
     n = input + (input%mandala_graphics[current_graphics].length); //adds remainder needed to maintain alternating pattern
-    divs = TWO_PI/n;
+    divs = TWO_PI/(float)n;
   }
 
   public void setModulationFrequency(int input) {
@@ -726,7 +728,8 @@ class Mandala {
             c.pushMatrix();
             c.translate(p.x, p.y);
             c.rotate(angle+orientation);
-            c.image(mandala_graphics[current_graphics][g_i], 0, 0, mandala_graphics[current_graphics][g_i].width*s, mandala_graphics[current_graphics][g_i].height*s);
+            PImage img = mandala_graphics[current_graphics][g_i];
+            c.image(img, 0, 0, img.width*s, img.height*s);
             c.popMatrix();
           }
         }
@@ -1370,16 +1373,21 @@ Custom control functions
 public void loadGraphics() {
   carrots[0] = loadImage("carrot01.png");
   carrots[1] = loadImage("carrot02.png");
+
   leaves[0] = loadImage("leaf01.png");
   leaves[1] = loadImage("leaf02.png");
+
   bushels[0] = loadImage("bushel01.png");
   bushels[1] = loadImage("bushel02.png");
   bushels[2] = loadImage("bushel03.png");
   bushels[3] = loadImage("bushel04.png");
+
   flowers[0] = loadImage("flower01.png");
   flowers[1] = loadImage("flower02.png");
   flowers[2] = loadImage("flower03.png");
   flowers[3] = loadImage("flower04.png");
+
+  mexiko[0] = loadImage("mexiko.png");
 
   ribbon = loadImage("ribbon.png");
   logo = loadImage("vaevlogo.png");

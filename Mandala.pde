@@ -8,7 +8,7 @@ class Mandala {
   float wiggle;
 
   int max_n = 50;
-  int n; // iterations
+  int n = 15; // iterations
   float divs; // n angle divisions on circle
 
   float m_scale; //master scale for all graphics
@@ -33,10 +33,10 @@ class Mandala {
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(String _name) {
     name = _name;
-    divs = TWO_PI/n;
     d_limits = noiseArray(n, 300);
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
+    divs = TWO_PI/(float)n;
 
     listener = new MyControlListener();
 
@@ -53,7 +53,7 @@ class Mandala {
     .setPosition(cp5A.x, cp5A.y)
     .setRange(5, max_n-1)
     .plugTo( this, "setN" )
-    .setValue(15)
+    .setValue(n)
     .setLabel("n")
     .setGroup(controlGroup)
     ;
@@ -160,6 +160,7 @@ class Mandala {
     .addItem("leaves", 1)
     .addItem("bushels", 2)
     .addItem("flowers", 3)
+    .addItem("mexiko", 4)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -197,7 +198,7 @@ class Mandala {
 
   void setN(int input) {
     n = input + (input%mandala_graphics[current_graphics].length); //adds remainder needed to maintain alternating pattern
-    divs = TWO_PI/n;
+    divs = TWO_PI/(float)n;
   }
 
   void setModulationFrequency(int input) {
@@ -283,7 +284,8 @@ class Mandala {
             c.pushMatrix();
             c.translate(p.x, p.y);
             c.rotate(angle+orientation);
-            c.image(mandala_graphics[current_graphics][g_i], 0, 0, mandala_graphics[current_graphics][g_i].width*s, mandala_graphics[current_graphics][g_i].height*s);
+            PImage img = mandala_graphics[current_graphics][g_i];
+            c.image(img, 0, 0, img.width*s, img.height*s);
             c.popMatrix();
           }
         }
