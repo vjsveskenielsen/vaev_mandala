@@ -161,6 +161,9 @@ class Mandala {
     .addItem("bushels", 2)
     .addItem("flowers", 3)
     .addItem("mexiko", 4)
+    .addItem("fish", 5)
+    .addItem("members", 6)
+    .addItem("marius", 7)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -247,7 +250,7 @@ class Mandala {
 
   void display() {
     if (m_scale > 0) {
-      PVector p = new PVector(0, 0); //position of each graphic
+      PVector p = new PVector(0, 0, 0); //position of each graphic
       int g_i = 0; //counter for choosing graphic from g_array
       float s; // graphics scale for each graphic
       float d; //distance value for each graphic
@@ -283,7 +286,7 @@ class Mandala {
             //draw graphics, orient along path
             c.pushMatrix();
             c.translate(p.x, p.y);
-            c.rotate(angle+orientation);
+            c.rotateZ(angle+orientation);
             PImage img = mandala_graphics[current_graphics][g_i];
             c.image(img, 0, 0, img.width*s, img.height*s);
             c.popMatrix();

@@ -42,12 +42,15 @@ Ribbons ribbons;
 Corners corners;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
-PImage[] bushels = new PImage[4];;
-PImage[] flowers = new PImage[4];;
-PImage[] mexiko = new PImage[1];;
+PImage[] bushels = new PImage[4];
+PImage[] flowers = new PImage[4];
+PImage[] mexiko = new PImage[2];
+PImage[] fish = new PImage[2];
+PImage[] members = new PImage[2];
+PImage[] marius = new PImage[1];
 
-PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko};
-PImage ribbon, logo, bushel;
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
+PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
 
 void settings() {
   size(1500, 540, P3D);

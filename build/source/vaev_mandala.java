@@ -70,12 +70,15 @@ Ribbons ribbons;
 Corners corners;
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
-PImage[] bushels = new PImage[4];;
-PImage[] flowers = new PImage[4];;
-PImage[] mexiko = new PImage[1];;
+PImage[] bushels = new PImage[4];
+PImage[] flowers = new PImage[4];
+PImage[] mexiko = new PImage[2];
+PImage[] fish = new PImage[2];
+PImage[] members = new PImage[2];
+PImage[] marius = new PImage[1];
 
-PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko};
-PImage ribbon, logo, bushel;
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
+PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
 
 public void settings() {
   size(1500, 540, P3D);
@@ -309,6 +312,7 @@ class Corners {
     }
   }
 }
+
 /* Example of a custom Layer class
  The Layer class extends a PGraphics3D object with nice stuff like
   - variable limits for optimizing drawing stuff within the canvas
@@ -605,6 +609,9 @@ class Mandala {
     .addItem("bushels", 2)
     .addItem("flowers", 3)
     .addItem("mexiko", 4)
+    .addItem("fish", 5)
+    .addItem("members", 6)
+    .addItem("marius", 7)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -691,7 +698,7 @@ class Mandala {
 
   public void display() {
     if (m_scale > 0) {
-      PVector p = new PVector(0, 0); //position of each graphic
+      PVector p = new PVector(0, 0, 0); //position of each graphic
       int g_i = 0; //counter for choosing graphic from g_array
       float s; // graphics scale for each graphic
       float d; //distance value for each graphic
@@ -727,7 +734,7 @@ class Mandala {
             //draw graphics, orient along path
             c.pushMatrix();
             c.translate(p.x, p.y);
-            c.rotate(angle+orientation);
+            c.rotateZ(angle+orientation);
             PImage img = mandala_graphics[current_graphics][g_i];
             c.image(img, 0, 0, img.width*s, img.height*s);
             c.popMatrix();
@@ -1387,9 +1394,17 @@ public void loadGraphics() {
   flowers[2] = loadImage("flower03.png");
   flowers[3] = loadImage("flower04.png");
 
-  mexiko[0] = loadImage("mexiko.png");
+  mexiko[0] = loadImage("mexiko01.png");
+  mexiko[1] = loadImage("mexiko02.png");
 
-  ribbon = loadImage("ribbon.png");
+  fish[0] = loadImage("fish01.png");
+  fish[1] = loadImage("fish02.png");
+
+  members[0] = loadImage("Lendal.png");
+  members[1] = loadImage("Mondrup.png");
+
+  marius[0] = loadImage("Marius.png");
+
   logo = loadImage("vaevlogo.png");
 }
 public void noteOn(int channel, int pitch, int velocity) {

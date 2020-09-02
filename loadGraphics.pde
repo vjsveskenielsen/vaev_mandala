@@ -15,8 +15,19 @@ void loadGraphics() {
   flowers[2] = loadImage("flower03.png");
   flowers[3] = loadImage("flower04.png");
 
-  mexiko[0] = loadImage("mexiko.png");
+  mexiko[0] = loadImage("mexiko01.png");
+  mexiko[1] = loadImage("mexiko02.png");
 
-  ribbon = loadImage("ribbon.png");
+  fish[0] = loadImage("fish01.png");
+  fish[1] = loadImage("fish02.png");
+
+  members[0] = loadImage("Lendal.png");
+  members[1] = loadImage("Mondrup.png");
+
+  marius[0] = loadImage("Marius.png");
+
   logo = loadImage("vaevlogo.png");
+
+  skovdyr_emblem = loadImage("skovdyr_emblem.png");
+  skovdyr_ring = loadImage("skovdyr_ring.png");
 }
