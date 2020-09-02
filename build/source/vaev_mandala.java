@@ -57,7 +57,7 @@ int port = 9999;
 String ip;
 
 Layer c;
-int cw = 1440, ch = 1080; //canvas dimensions
+int cw = 1920, ch = 1080; //canvas dimensions
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -68,6 +68,10 @@ Log log;
 ArrayList<Mandala> mandalas = new ArrayList();
 Ribbons ribbons;
 Corners corners;
+Emblem emblem;
+
+PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
@@ -76,28 +80,23 @@ PImage[] mexiko = new PImage[2];
 PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
+PImage[] skovdyr = new PImage[2];
 
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+PImage[][] emblem_graphics = {skovdyr};
 
 public void settings() {
   size(1500, 540, P3D);
 }
 
 public void setup() {
-  loadGraphics(); // load all graphics from /data
-  // for (int i = 0; i<mandala_graphics.length; i++) {
-  //   for (int j = 0; j<mandala_graphics[i].length; j++) {
-  //     println("tried mandala_graphics #", i, "with", mandala_graphics[i].length, "items, tried item", j);
-  //     image(mandala_graphics[i][j], 0,0, 400, 400);
-  //   }
-  // }
+  loadGraphics();
   Ani.init(this);
 
   log = new Log();
 
   midi_devices = midi.availableInputs();
-  cp5A = new ControlP5Arranger(500, 70, 5, 2); //new Arranger with grid of x by y anchors
+  cp5A = new ControlP5Arranger(500, 70, 6, 2); //new Arranger with grid of x by y anchors
   controlSetup();
 
   updateOSC(port);
@@ -114,6 +113,7 @@ public void setup() {
 
   ribbons = new Ribbons("Ribbons");
   corners = new Corners("Corners");
+  emblem = new Emblem("Emblem");
 }
 
 public void draw() {
@@ -149,6 +149,9 @@ public void drawGraphics() {
 
   corners.update();
   corners.display();
+
+  emblem.update();
+  emblem.display();
 
   c.endDraw();
 }
@@ -312,7 +315,124 @@ class Corners {
     }
   }
 }
+class Emblem {
+  Group controlGroup;
+  String name;
+  int current_graphics = 0;
 
+  float m_scale; //master scale for all graphics
+  float a_scale = 1.0f; //scale to be animated on chooseGraphics()
+
+  float r_s; //rotation speed
+  float r = 0; //rotation value
+  float orientation;
+  PVector anchor;
+
+  // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
+  Emblem(String _name) {
+    name = _name;
+    anchor = c.center;
+
+    controlGroup = cp5.addGroup(name)
+    .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
+    .setWidth(cp5A.groupwidth)
+    .activateEvent(true)
+    .setBackgroundColor(color(255, 80))
+    .setLabel(name)
+    ;
+
+    cp5A.addXY(5, 5);
+
+    cp5.addSlider(name + "/" + "scale")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(0.0f, 2.0f )
+    .plugTo( this, "setScale" )
+    .setValue( 1.0f )
+    .setLabel("scale")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "scale");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "rotation_speed")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-0.01f, 0.01f )
+    .plugTo( this, "setRotationSpeed" )
+    .setValue( 1.0f )
+    .setLabel("rotation_speed")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "rotation_speed");
+
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addScrollableList(name + "/" + "graphics")
+    .setPosition(cp5A.x, cp5A.y)
+    .addItem("skovdyr", 0)
+    .setValue(0)
+    .plugTo(this, "scaleDownChangeGraphics")
+    .setLabel("choose graphics")
+    .setGroup(controlGroup)
+    .setType(ControlP5.LIST)
+    .open()
+    ;
+    //cp5A.style1(name + "/" + "graphics");
+
+    controlGroup.setBackgroundHeight(cp5A.groupheight);
+    cp5A.setXY(0,0); //reset xy for next group of controls
+    cp5A.goToNextAnchor(); //move to next anchor for next group of controls
+  }
+
+  public void setScale(float input) {
+    m_scale = input;
+  }
+
+  public void setRotationSpeed(float input) {
+    r_s = input;
+  }
+
+  public void chooseGraphics(int input) {
+    current_graphics = input;
+  }
+
+  public void scaleDown() {
+    Ani.to(this, 2.0f, "a_scale", 0.0f, Ani.QUAD_IN, "onEnd:scaleUp");
+  }
+  public void scaleDownChangeGraphics(int input) {
+    //if the input different from current_graphics and no animation is in progress
+    if (input != current_graphics) {
+      //animate the scale and callback to scaleUp
+      Ani.to(this, 1.0f, "a_scale", 0.0f, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
+    }
+  }
+
+  public void scaleUp() {
+    Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
+  }
+  public void scaleUpChangeGraphics() {
+    Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
+    current_graphics = (int)cp5.getController(name + "/graphics").getValue();
+  }
+
+  public void update() {
+    m_scale = cp5.getController(name + "/" + "scale").getValue()*a_scale;
+    r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
+  }
+
+  public void display() {
+    c.pushMatrix();
+    c.translate(anchor.x, anchor.y);
+    c.imageMode(CENTER);
+    PImage img;
+    for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
+      println(i);
+      img = emblem_graphics[current_graphics][i];
+      c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
+    }
+    c.popMatrix();
+  }
+
+}
 /* Example of a custom Layer class
  The Layer class extends a PGraphics3D object with nice stuff like
   - variable limits for optimizing drawing stuff within the canvas
@@ -475,9 +595,6 @@ class Mandala {
   float[] d_limits;
   float mod_freq, mod_amount, mod_time = 0, mod_rate;
 
-  MyControlListener listener;
-  RadioButton radio;
-
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(String _name) {
     name = _name;
@@ -485,8 +602,6 @@ class Mandala {
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
     divs = TWO_PI/(float)n;
-
-    listener = new MyControlListener();
 
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
@@ -682,7 +797,7 @@ class Mandala {
   public void scaleUp() {
     Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
   }
-    public void scaleUpChangeGraphics() {
+  public void scaleUpChangeGraphics() {
     Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
     current_graphics = (int)cp5.getController(name + "/graphics").getValue();
   }
@@ -748,13 +863,6 @@ class Mandala {
       }
     }
   }
-}
-// hotfix for radio button that wont plug to shit
-class MyControlListener implements ControlListener {
-  public void controlEvent(ControlEvent theEvent) {
-    println(theEvent.getController().getValue());
-  }
-
 }
 
 //rollover of float value between a lower and upper value
@@ -1406,6 +1514,12 @@ public void loadGraphics() {
   marius[0] = loadImage("Marius.png");
 
   logo = loadImage("vaevlogo.png");
+
+  skovdyr_emblem = loadImage("skovdyr_emblem.png");
+  skovdyr_ring = loadImage("skovdyr_ring.png");
+
+  skovdyr[0] = skovdyr_emblem;
+  skovdyr[1] = skovdyr_ring;
 }
 public void noteOn(int channel, int pitch, int velocity) {
   if (log_midi) log.setText("Note On // Channel:"+channel + " // Pitch:"+pitch + " // Velocity:"+velocity);

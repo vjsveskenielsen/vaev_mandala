@@ -27,9 +27,6 @@ class Mandala {
   float[] d_limits;
   float mod_freq, mod_amount, mod_time = 0, mod_rate;
 
-  MyControlListener listener;
-  RadioButton radio;
-
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Mandala(String _name) {
     name = _name;
@@ -37,8 +34,6 @@ class Mandala {
     d_max = calcHypotenuse(c.width/2, c.height/2);
     anchor = c.center;
     divs = TWO_PI/(float)n;
-
-    listener = new MyControlListener();
 
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
@@ -234,7 +229,7 @@ class Mandala {
   void scaleUp() {
     Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
   }
-    void scaleUpChangeGraphics() {
+  void scaleUpChangeGraphics() {
     Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
     current_graphics = (int)cp5.getController(name + "/graphics").getValue();
   }
@@ -300,11 +295,4 @@ class Mandala {
       }
     }
   }
-}
-// hotfix for radio button that wont plug to shit
-class MyControlListener implements ControlListener {
-  public void controlEvent(ControlEvent theEvent) {
-    println(theEvent.getController().getValue());
-  }
-
 }

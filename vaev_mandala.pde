@@ -29,7 +29,7 @@ int port = 9999;
 String ip;
 
 Layer c;
-int cw = 1440, ch = 1080; //canvas dimensions
+int cw = 1920, ch = 1080; //canvas dimensions
 
 SyphonServer syphonserver;
 SyphonClient[] syphon_clients;
@@ -40,6 +40,10 @@ Log log;
 ArrayList<Mandala> mandalas = new ArrayList();
 Ribbons ribbons;
 Corners corners;
+Emblem emblem;
+
+PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
 PImage[] bushels = new PImage[4];
@@ -48,28 +52,23 @@ PImage[] mexiko = new PImage[2];
 PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
+PImage[] skovdyr = new PImage[2];
 
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+PImage[][] emblem_graphics = {skovdyr};
 
 void settings() {
   size(1500, 540, P3D);
 }
 
 void setup() {
-  loadGraphics(); // load all graphics from /data
-  // for (int i = 0; i<mandala_graphics.length; i++) {
-  //   for (int j = 0; j<mandala_graphics[i].length; j++) {
-  //     println("tried mandala_graphics #", i, "with", mandala_graphics[i].length, "items, tried item", j);
-  //     image(mandala_graphics[i][j], 0,0, 400, 400);
-  //   }
-  // }
+  loadGraphics();
   Ani.init(this);
 
   log = new Log();
 
   midi_devices = midi.availableInputs();
-  cp5A = new ControlP5Arranger(500, 70, 5, 2); //new Arranger with grid of x by y anchors
+  cp5A = new ControlP5Arranger(500, 70, 6, 2); //new Arranger with grid of x by y anchors
   controlSetup();
 
   updateOSC(port);
@@ -86,6 +85,7 @@ void setup() {
 
   ribbons = new Ribbons("Ribbons");
   corners = new Corners("Corners");
+  emblem = new Emblem("Emblem");
 }
 
 void draw() {
@@ -121,6 +121,9 @@ void drawGraphics() {
 
   corners.update();
   corners.display();
+
+  emblem.update();
+  emblem.display();
 
   c.endDraw();
 }

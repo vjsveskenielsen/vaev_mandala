@@ -30,4 +30,7 @@ void loadGraphics() {
 
   skovdyr_emblem = loadImage("skovdyr_emblem.png");
   skovdyr_ring = loadImage("skovdyr_ring.png");
+
+  skovdyr[0] = skovdyr_emblem;
+  skovdyr[1] = skovdyr_ring;
 }

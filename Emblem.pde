@@ -1,15 +1,7 @@
-class Mandala {
+class Emblem {
   Group controlGroup;
   String name;
   int current_graphics = 0;
-
-  float w_s; //wigglespeed
-  float w_a; //wiggle amount
-  float wiggle;
-
-  int max_n = 50;
-  int n = 15; // iterations
-  float divs; // n angle divisions on circle
 
   float m_scale; //master scale for all graphics
   float a_scale = 1.0; //scale to be animated on chooseGraphics()
@@ -17,25 +9,12 @@ class Mandala {
   float r_s; //rotation speed
   float r = 0; //rotation value
   float orientation;
-
-  PVector anchor; //Mandala anchor (point of origin)
-  float distance;
-  float d_norm = 0.5; //normalized distance of p (position) from anchor to d_m
-  float d_s = 10; //speed of movement between anchor and d_max
-  float d_max; //maximum distance possible within canvas
-  float d_limit;
-  float[] d_limits;
-  float mod_freq, mod_amount, mod_time = 0, mod_rate;
-
-  MyControlListener listener;
-  RadioButton radio;
+  PVector anchor;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
-  Mandala(String _name) {
+  Emblem(String _name) {
     name = _name;
     anchor = c.center;
-
-    listener = new MyControlListener();
 
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
@@ -46,18 +25,7 @@ class Mandala {
     ;
 
     cp5A.addXY(5, 5);
-    cp5.addSlider(name + "/" + "n")
-    .setPosition(cp5A.x, cp5A.y)
-    .setRange(5, max_n-1)
-    .plugTo( this, "setN" )
-    .setValue(n)
-    .setLabel("n")
-    .setGroup(controlGroup)
-    ;
-    cp5A.style1(name + "/" + "n");
 
-
-    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "scale")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(0.0, 2.0 )
@@ -83,11 +51,7 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
-    .addItem("carrots", 0)
-    .addItem("leaves", 1)
-    .addItem("bushels", 2)
-    .addItem("flowers", 3)
-    .addItem("mexiko", 4)
+    .addItem("skovdyr", 0)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -134,13 +98,21 @@ class Mandala {
   }
 
   void update() {
+    m_scale = cp5.getController(name + "/" + "scale").getValue()*a_scale;
+    r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
   }
 
   void display() {
     c.pushMatrix();
     c.translate(anchor.x, anchor.y);
     c.imageMode(CENTER);
-    c.image()
+    PImage img;
+    for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
+      println(i);
+      img = emblem_graphics[current_graphics][i];
+      c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
+    }
+    c.popMatrix();
   }
 
 }
