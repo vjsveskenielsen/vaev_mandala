@@ -69,9 +69,9 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "rotation_speed")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(-0.01, 0.01 )
+    .setRange(-100, 100 )
     .plugTo( this, "setRotationSpeed" )
-    .setValue( 1.0 )
+    .setValue( 0 )
     .setLabel("rotation_speed")
     .setGroup(controlGroup)
     ;
@@ -178,8 +178,8 @@ class Mandala {
     m_scale = input;
   }
 
-  void setRotationSpeed(float input) {
-    r_s = input;
+  void setRotationSpeed(int input) {
+    r_s = map(input,-100., 100., -0.01, 0.01);
   }
 
   void setOrientation(float input) {

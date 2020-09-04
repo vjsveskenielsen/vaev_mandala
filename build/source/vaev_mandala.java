@@ -323,10 +323,14 @@ class Emblem {
   float m_scale; //master scale for all graphics
   float a_scale = 1.0f; //scale to be animated on chooseGraphics()
 
-  float r_s; //rotation speed
-  float r = 0; //rotation value
+  float r0_s; //rotation speed
+  float r0 = 0; //rotation value
+  float r1_s; //rotation speed
+  float r1 = 0; //rotation value
   float orientation;
   PVector anchor;
+
+  boolean rotate_or_wiggle;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Emblem(String _name) {
@@ -354,17 +358,46 @@ class Emblem {
     cp5A.style1(name + "/" + "scale");
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
-    cp5.addSlider(name + "/" + "rotation_speed")
+    cp5.addSlider(name + "/" + "r0_rotation_speed")
     .setPosition(cp5A.x, cp5A.y)
     .setRange(-0.01f, 0.01f )
-    .plugTo( this, "setRotationSpeed" )
+    .plugTo( this, "r0_s" )
     .setValue( 1.0f )
-    .setLabel("rotation_speed")
+    .setLabel("r0_rotation_speed")
     .setGroup(controlGroup)
     ;
-    cp5A.style1(name + "/" + "rotation_speed");
+    cp5A.style1(name + "/" + "r0_rotation_speed");
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addToggle(name + "/" + "r0_rotate_wiggle")
+    .setPosition(cp5A.x, cp5A.y)
+    .plugTo( this, "r0_rotate_wiggle" )
+    .setValue(true)
+    .setMode(ControlP5.SWITCH)
+    .setLabel("r0_rotate_wiggle")
+    .setGroup(controlGroup)
+    ;
 
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addSlider(name + "/" + "r1_rotation_speed")
+    .setPosition(cp5A.x, cp5A.y)
+    .setRange(-0.01f, 0.01f )
+    .plugTo( this, "r1_s" )
+    .setValue( 1.0f )
+    .setLabel("r1_rotation_speed")
+    .setGroup(controlGroup)
+    ;
+    cp5A.style1(name + "/" + "r1_rotation_speed");
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addToggle(name + "/" + "r1_rotate_wiggle")
+    .setPosition(cp5A.x, cp5A.y)
+    .plugTo( this, "r1_rotate_wiggle" )
+    .setValue(true)
+    .setMode(ControlP5.SWITCH)
+    .setLabel("r1_rotate_wiggle")
+    .setGroup(controlGroup)
+    ;
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
@@ -385,10 +418,6 @@ class Emblem {
 
   public void setScale(float input) {
     m_scale = input;
-  }
-
-  public void setRotationSpeed(float input) {
-    r_s = input;
   }
 
   public void chooseGraphics(int input) {
@@ -416,7 +445,8 @@ class Emblem {
 
   public void update() {
     m_scale = cp5.getController(name + "/" + "scale").getValue()*a_scale;
-    r = rollOver(r+r_s, 0, TWO_PI); //rotate mandala
+    r0 = rollOver(r0+r0_s, 0, TWO_PI);
+    r1 = rollOver(r1+r1_s, 0, TWO_PI);
   }
 
   public void display() {
@@ -427,7 +457,17 @@ class Emblem {
     for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
       println(i);
       img = emblem_graphics[current_graphics][i];
+      c.pushMatrix();
+      if (i == 0) {
+        if (rotate_or_wiggle) c.rotateZ(r0);
+        else c.rotate(sin(r0)*.25f);
+      }
+      else if (i == 1) {
+        if (rotate_or_wiggle) c.rotateZ(r1);
+        else c.rotate(sin(r1)*.25f);
+      }
       c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
+      c.popMatrix();
     }
     c.popMatrix();
   }
@@ -637,9 +677,9 @@ class Mandala {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "rotation_speed")
     .setPosition(cp5A.x, cp5A.y)
-    .setRange(-0.01f, 0.01f )
+    .setRange(-100, 100 )
     .plugTo( this, "setRotationSpeed" )
-    .setValue( 1.0f )
+    .setValue( 0 )
     .setLabel("rotation_speed")
     .setGroup(controlGroup)
     ;
@@ -746,8 +786,8 @@ class Mandala {
     m_scale = input;
   }
 
-  public void setRotationSpeed(float input) {
-    r_s = input;
+  public void setRotationSpeed(int input) {
+    r_s = map(input,-100.f, 100.f, -0.01f, 0.01f);
   }
 
   public void setOrientation(float input) {
