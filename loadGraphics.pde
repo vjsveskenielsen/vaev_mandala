@@ -26,11 +26,13 @@ void loadGraphics() {
 
   marius[0] = loadImage("Marius.png");
 
-  logo = loadImage("vaevlogo.png");
+  logo_name = loadImage("vaev_logo.png");
+  logo_star = loadImage("vaev_logo_star.png");
+  logo[0] = logo_name;
+  logo[1] = logo_star;
 
   skovdyr_emblem = loadImage("skovdyr_emblem.png");
   skovdyr_ring = loadImage("skovdyr_ring.png");
-
   skovdyr[0] = skovdyr_emblem;
   skovdyr[1] = skovdyr_ring;
 }

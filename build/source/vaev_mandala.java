@@ -70,7 +70,9 @@ Ribbons ribbons;
 Corners corners;
 Emblem emblem;
 
-PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+PImage ribbon;
+PImage skovdyr_emblem, skovdyr_ring;
+PImage logo_name, logo_star;
 
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
@@ -81,9 +83,10 @@ PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
 PImage[] skovdyr = new PImage[2];
+PImage[] logo = new PImage[2];
 
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage[][] emblem_graphics = {skovdyr};
+PImage[][] emblem_graphics = {logo, skovdyr};
 
 public void settings() {
   size(1500, 540, P3D);
@@ -128,6 +131,13 @@ public void draw() {
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
+  for (Mandala m : mandalas) {
+    int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
+    int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
+    stroke(255, 0, 0);
+    noFill();
+    circle(x, y, m.d_norm/2*m.d_max);
+  }
 
   log.update();
   displayFrameRate();
@@ -330,7 +340,7 @@ class Emblem {
   float orientation;
   PVector anchor;
 
-  boolean rotate_or_wiggle;
+  boolean r0_rotate_wiggle, r1_rotate_wiggle;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Emblem(String _name) {
@@ -372,7 +382,7 @@ class Emblem {
     cp5.addToggle(name + "/" + "r0_rotate_wiggle")
     .setPosition(cp5A.x, cp5A.y)
     .plugTo( this, "r0_rotate_wiggle" )
-    .setValue(true)
+    .setValue(false)
     .setMode(ControlP5.SWITCH)
     .setLabel("r0_rotate_wiggle")
     .setGroup(controlGroup)
@@ -401,7 +411,8 @@ class Emblem {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
-    .addItem("skovdyr", 0)
+    .addItem("vaev_logo", 0)
+    .addItem("skovdyr", 1)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -455,15 +466,14 @@ class Emblem {
     c.imageMode(CENTER);
     PImage img;
     for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
-      println(i);
       img = emblem_graphics[current_graphics][i];
       c.pushMatrix();
       if (i == 0) {
-        if (rotate_or_wiggle) c.rotateZ(r0);
+        if (r0_rotate_wiggle) c.rotateZ(r0);
         else c.rotate(sin(r0)*.25f);
       }
       else if (i == 1) {
-        if (rotate_or_wiggle) c.rotateZ(r1);
+        if (r1_rotate_wiggle) c.rotateZ(r1);
         else c.rotate(sin(r1)*.25f);
       }
       c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
@@ -1553,11 +1563,13 @@ public void loadGraphics() {
 
   marius[0] = loadImage("Marius.png");
 
-  logo = loadImage("vaevlogo.png");
+  logo_name = loadImage("vaev_logo.png");
+  logo_star = loadImage("vaev_logo_star.png");
+  logo[0] = logo_name;
+  logo[1] = logo_star;
 
   skovdyr_emblem = loadImage("skovdyr_emblem.png");
   skovdyr_ring = loadImage("skovdyr_ring.png");
-
   skovdyr[0] = skovdyr_emblem;
   skovdyr[1] = skovdyr_ring;
 }

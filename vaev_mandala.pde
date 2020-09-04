@@ -42,7 +42,9 @@ Ribbons ribbons;
 Corners corners;
 Emblem emblem;
 
-PImage ribbon, logo, skovdyr_emblem, skovdyr_ring;
+PImage ribbon;
+PImage skovdyr_emblem, skovdyr_ring;
+PImage logo_name, logo_star;
 
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
@@ -53,9 +55,10 @@ PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
 PImage[] skovdyr = new PImage[2];
+PImage[] logo = new PImage[2];
 
 PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage[][] emblem_graphics = {skovdyr};
+PImage[][] emblem_graphics = {logo, skovdyr};
 
 void settings() {
   size(1500, 540, P3D);
@@ -100,6 +103,13 @@ void draw() {
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
+  for (Mandala m : mandalas) {
+    int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
+    int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
+    stroke(255, 0, 0);
+    noFill();
+    circle(x, y, m.d_norm/2*m.d_max);
+  }
 
   log.update();
   displayFrameRate();

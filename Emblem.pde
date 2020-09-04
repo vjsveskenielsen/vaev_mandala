@@ -13,7 +13,7 @@ class Emblem {
   float orientation;
   PVector anchor;
 
-  boolean rotate_or_wiggle;
+  boolean r0_rotate_wiggle, r1_rotate_wiggle;
 
   // graphics, iterations, mandala rotation, graphic angle, wiggle amount,
   Emblem(String _name) {
@@ -55,7 +55,7 @@ class Emblem {
     cp5.addToggle(name + "/" + "r0_rotate_wiggle")
     .setPosition(cp5A.x, cp5A.y)
     .plugTo( this, "r0_rotate_wiggle" )
-    .setValue(true)
+    .setValue(false)
     .setMode(ControlP5.SWITCH)
     .setLabel("r0_rotate_wiggle")
     .setGroup(controlGroup)
@@ -84,7 +84,8 @@ class Emblem {
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
-    .addItem("skovdyr", 0)
+    .addItem("vaev_logo", 0)
+    .addItem("skovdyr", 1)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -141,11 +142,11 @@ class Emblem {
       img = emblem_graphics[current_graphics][i];
       c.pushMatrix();
       if (i == 0) {
-        if (rotate_or_wiggle) c.rotateZ(r0);
+        if (r0_rotate_wiggle) c.rotateZ(r0);
         else c.rotate(sin(r0)*.25);
       }
       else if (i == 1) {
-        if (rotate_or_wiggle) c.rotateZ(r1);
+        if (r1_rotate_wiggle) c.rotateZ(r1);
         else c.rotate(sin(r1)*.25);
       }
       c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
