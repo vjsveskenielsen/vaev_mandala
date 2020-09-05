@@ -12,6 +12,7 @@ class Emblem {
   float r1 = 0; //rotation value
   float orientation;
   PVector anchor;
+  float anchor_offset = 0;
 
   boolean r0_rotate_wiggle, r1_rotate_wiggle;
 
@@ -81,11 +82,23 @@ class Emblem {
     .setLabel("r1_rotate_wiggle")
     .setGroup(controlGroup)
     ;
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addBang(name + "/" + "emblem_toggle")
+    .setPosition(cp5A.x, cp5A.y)
+    .plugTo( this, "moveInOut" )
+    .setLabel("emblem_toggle")
+    .setGroup(controlGroup)
+    ;
+
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
     .addItem("vaev_logo", 0)
     .addItem("skovdyr", 1)
+    .addItem("rummelpot", 2)
+    .addItem("rummelpotjomfru", 3)
+    .addItem("mia", 4)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -107,9 +120,21 @@ class Emblem {
   void chooseGraphics(int input) {
     current_graphics = input;
   }
+  void moveInOut() {
+    if (anchor_offset > 0) {
+      moveIn();
+    }
+    else {
+      moveOut();
+    }
+  }
 
-  void scaleDown() {
-    Ani.to(this, 2.0, "a_scale", 0.0, Ani.QUAD_IN, "onEnd:scaleUp");
+  void moveOut() {
+    Ani.to(this, 3.0, "anchor_offset", c.height, Ani.QUAD_IN);
+  }
+
+  void moveIn() {
+    Ani.to(this, 3.0, "anchor_offset", 0, Ani.QUAD_OUT);
   }
   void scaleDownChangeGraphics(int input) {
     //if the input different from current_graphics and no animation is in progress
@@ -117,10 +142,6 @@ class Emblem {
       //animate the scale and callback to scaleUp
       Ani.to(this, 1.0, "a_scale", 0.0, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
     }
-  }
-
-  void scaleUp() {
-    Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
   }
   void scaleUpChangeGraphics() {
     Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
@@ -135,24 +156,30 @@ class Emblem {
 
   void display() {
     c.pushMatrix();
-    c.translate(anchor.x, anchor.y);
+    c.translate(anchor.x, anchor.y+anchor_offset);
     c.imageMode(CENTER);
     PImage img;
     for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
       img = emblem_graphics[current_graphics][i];
+      //println(current_graphics, i);
       c.pushMatrix();
-      if (i == 0) {
+      switch(i) {
+        case 0:
         if (r0_rotate_wiggle) c.rotateZ(r0);
         else c.rotate(sin(r0)*.25);
-      }
-      else if (i == 1) {
+        break;
+        case 1:
         if (r1_rotate_wiggle) c.rotateZ(r1);
         else c.rotate(sin(r1)*.25);
+        break;
+        case 2:
+        if (r0_rotate_wiggle) c.rotateZ(r0);
+        else c.rotate(sin(r0)*.25);
+        break;
       }
       c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
       c.popMatrix();
     }
     c.popMatrix();
   }
-
 }

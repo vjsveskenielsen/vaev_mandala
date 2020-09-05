@@ -35,11 +35,12 @@ class Mandala {
     anchor = c.center;
     divs = TWO_PI/(float)n;
 
+    cp5A.goToNextColorScheme();
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
     .setWidth(cp5A.groupwidth)
     .activateEvent(true)
-    .setBackgroundColor(color(255, 80))
+    .setBackgroundColor(cp5A.getBackgroundColor())
     .setLabel(name)
     ;
 
@@ -53,7 +54,6 @@ class Mandala {
     .setGroup(controlGroup)
     ;
     cp5A.style1(name + "/" + "n");
-
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "scale")
@@ -159,6 +159,8 @@ class Mandala {
     .addItem("fish", 5)
     .addItem("members", 6)
     .addItem("marius", 7)
+    .addItem("mia", 7)
+    .addItem("sparrows", 8)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")

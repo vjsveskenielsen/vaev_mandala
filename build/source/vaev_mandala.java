@@ -73,6 +73,9 @@ Emblem emblem;
 PImage ribbon;
 PImage skovdyr_emblem, skovdyr_ring;
 PImage logo_name, logo_star;
+PImage rummelpot_emblem, rummelpot_ring;
+PImage jomfru, hollaender, potflag;
+PImage mia_ring;
 
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
@@ -82,11 +85,16 @@ PImage[] mexiko = new PImage[2];
 PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
+PImage[] mia = new PImage[1];
 PImage[] skovdyr = new PImage[2];
 PImage[] logo = new PImage[2];
+PImage[] rummelpot = new PImage[2];
+PImage[] rummelpotjomfru = new PImage[3];
+PImage[] mia_emblem = new PImage[2];
+PImage[] sparrows = new PImage[2];
 
-PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage[][] emblem_graphics = {logo, skovdyr};
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius, mia, sparrows};
+PImage[][] emblem_graphics = {logo, skovdyr, rummelpot, rummelpotjomfru, mia_emblem};
 
 public void settings() {
   size(1500, 540, P3D);
@@ -113,7 +121,9 @@ public void setup() {
   mandalas.add(new Mandala("Mandala1"));
   mandalas.add(new Mandala("Mandala2"));
   mandalas.add(new Mandala("Mandala3"));
-
+  mandalas.get(1).m_scale = 0.0f;
+  mandalas.get(2).m_scale = 0.0f;
+  cp5A.setColorScheme(0);
   ribbons = new Ribbons("Ribbons");
   corners = new Corners("Corners");
   emblem = new Emblem("Emblem");
@@ -125,19 +135,22 @@ public void draw() {
   fill(100);
   rect(0, 0, width, 55);
   fill(cp5.getTab("output/syphon").getColor().getBackground());
-  rect(0, 0, width, cp5.getTab("output/syphon").getHeight());
+  rect(0, 0, width, cp5.getTab("OUTPUT/syphon").getHeight());
 
 
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
-  for (Mandala m : mandalas) {
-    int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
-    int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
-    stroke(255, 0, 0);
-    noFill();
-    circle(x, y, m.d_norm/2*m.d_max);
-  }
+  //interface helpers for mandalas
+  int colorindex = 1;
+    for (Mandala m : mandalas) {
+      int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
+      int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
+      stroke(cp5A.foregroundColors[colorindex]);
+      noFill();
+      circle(x, y, m.d_norm/2*m.d_max);
+      colorindex++;
+    }
 
   log.update();
   displayFrameRate();
@@ -195,7 +208,11 @@ class ControlP5Arranger {
   int groupwidth = 120;
   PVector[] anchors;
   int anchor_index = 0;
-  int groupheight = 150;
+  int groupheight = 550;
+  int[] foregroundColors = {color(150), color(255, 0, 0, 100),  color(0, 200, 50, 100),  color(0, 0, 255, 100)};
+  int[] backgroundColors = {color(150), color(255, 0, 0, 50),   color(0, 200, 50, 50),   color(0, 0, 255, 50)};
+  int[] activeConColors =  {color(150), color(255, 0, 0, 255),  color(0, 200, 50, 255),  color(0, 0, 255, 255)};
+  int colorSchemeIndex = 0;
 
   public void style1(String con_name) {
     Controller con = cp5.getController(con_name);
@@ -204,6 +221,9 @@ class ControlP5Arranger {
     con.setId(0);
     con.getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     con.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    //con.setColorForeground(cp5A.getForegroundColor());
+    //con.setColorBackground(cp5A.getBackgroundColor());
+    //con.setColorActive(cp5A.getActiveConColor());
   }
 
   //anchors[0] x, anchors[0] y, n anchors on x axis, n anchors on y axis
@@ -245,6 +265,23 @@ class ControlP5Arranger {
   public void addXY(int inputx, int inputy) {
     x += inputx;
     y += inputy;
+  }
+
+  public int getForegroundColor() {
+    return foregroundColors[colorSchemeIndex];
+  }
+  public int getBackgroundColor() {
+    return activeConColors[colorSchemeIndex];
+  }
+  public int getActiveConColor() {
+    return activeConColors[colorSchemeIndex];
+  }
+
+  public void goToNextColorScheme() {
+    colorSchemeIndex = rollOver(colorSchemeIndex+1, 0, foregroundColors.length);
+  }
+  public void setColorScheme(int input) {
+    colorSchemeIndex = input;
   }
 }
 class Corners {
@@ -339,6 +376,7 @@ class Emblem {
   float r1 = 0; //rotation value
   float orientation;
   PVector anchor;
+  float anchor_offset = 0;
 
   boolean r0_rotate_wiggle, r1_rotate_wiggle;
 
@@ -408,11 +446,23 @@ class Emblem {
     .setLabel("r1_rotate_wiggle")
     .setGroup(controlGroup)
     ;
+
+    cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
+    cp5.addBang(name + "/" + "emblem_toggle")
+    .setPosition(cp5A.x, cp5A.y)
+    .plugTo( this, "moveInOut" )
+    .setLabel("emblem_toggle")
+    .setGroup(controlGroup)
+    ;
+
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addScrollableList(name + "/" + "graphics")
     .setPosition(cp5A.x, cp5A.y)
     .addItem("vaev_logo", 0)
     .addItem("skovdyr", 1)
+    .addItem("rummelpot", 2)
+    .addItem("rummelpotjomfru", 3)
+    .addItem("mia", 4)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -434,9 +484,21 @@ class Emblem {
   public void chooseGraphics(int input) {
     current_graphics = input;
   }
+  public void moveInOut() {
+    if (anchor_offset > 0) {
+      moveIn();
+    }
+    else {
+      moveOut();
+    }
+  }
 
-  public void scaleDown() {
-    Ani.to(this, 2.0f, "a_scale", 0.0f, Ani.QUAD_IN, "onEnd:scaleUp");
+  public void moveOut() {
+    Ani.to(this, 3.0f, "anchor_offset", c.height, Ani.QUAD_IN);
+  }
+
+  public void moveIn() {
+    Ani.to(this, 3.0f, "anchor_offset", 0, Ani.QUAD_OUT);
   }
   public void scaleDownChangeGraphics(int input) {
     //if the input different from current_graphics and no animation is in progress
@@ -444,10 +506,6 @@ class Emblem {
       //animate the scale and callback to scaleUp
       Ani.to(this, 1.0f, "a_scale", 0.0f, Ani.QUAD_IN, "onEnd:scaleUpChangeGraphics");
     }
-  }
-
-  public void scaleUp() {
-    Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
   }
   public void scaleUpChangeGraphics() {
     Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
@@ -462,26 +520,32 @@ class Emblem {
 
   public void display() {
     c.pushMatrix();
-    c.translate(anchor.x, anchor.y);
+    c.translate(anchor.x, anchor.y+anchor_offset);
     c.imageMode(CENTER);
     PImage img;
     for (int i = emblem_graphics[current_graphics].length-1; i>-1; i--) {
       img = emblem_graphics[current_graphics][i];
+      //println(current_graphics, i);
       c.pushMatrix();
-      if (i == 0) {
+      switch(i) {
+        case 0:
         if (r0_rotate_wiggle) c.rotateZ(r0);
         else c.rotate(sin(r0)*.25f);
-      }
-      else if (i == 1) {
+        break;
+        case 1:
         if (r1_rotate_wiggle) c.rotateZ(r1);
         else c.rotate(sin(r1)*.25f);
+        break;
+        case 2:
+        if (r0_rotate_wiggle) c.rotateZ(r0);
+        else c.rotate(sin(r0)*.25f);
+        break;
       }
       c.image(img, 0,0, img.width*m_scale, img.height*m_scale);
       c.popMatrix();
     }
     c.popMatrix();
   }
-
 }
 /* Example of a custom Layer class
  The Layer class extends a PGraphics3D object with nice stuff like
@@ -653,11 +717,12 @@ class Mandala {
     anchor = c.center;
     divs = TWO_PI/(float)n;
 
+    cp5A.goToNextColorScheme();
     controlGroup = cp5.addGroup(name)
     .setPosition(cp5A.getAnchor().x, cp5A.getAnchor().y)
     .setWidth(cp5A.groupwidth)
     .activateEvent(true)
-    .setBackgroundColor(color(255, 80))
+    .setBackgroundColor(cp5A.getBackgroundColor())
     .setLabel(name)
     ;
 
@@ -671,7 +736,6 @@ class Mandala {
     .setGroup(controlGroup)
     ;
     cp5A.style1(name + "/" + "n");
-
 
     cp5A.addXY(0, cp5A.margin+cp5A.sliderheight);
     cp5.addSlider(name + "/" + "scale")
@@ -777,6 +841,8 @@ class Mandala {
     .addItem("fish", 5)
     .addItem("members", 6)
     .addItem("marius", 7)
+    .addItem("mia", 7)
+    .addItem("sparrows", 8)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -1021,9 +1087,10 @@ class Ribbons {
 
   Ribbons(String _name) {
     name = _name;
-    PImage r1 = loadImage("ribbon1.png");
-    PImage r2 = loadImage("ribbon2.png");
-    PImage[] _ribbon_graphics = { r1, r2 };
+    PImage r1 = loadImage("ribbon01.png");
+    PImage r2 = loadImage("ribbon02.png");
+    PImage r3 = loadImage("ribbon03.png");
+    PImage[] _ribbon_graphics = { r1, r2, r3 };
     ribbon_graphics = _ribbon_graphics;
     calculateRibbons();
     calculateAnchors();
@@ -1086,6 +1153,7 @@ class Ribbons {
     .setPosition(cp5A.x, cp5A.y)
     .addItem("flowers", 0)
     .addItem("tangents", 1)
+    .addItem("roses", 2)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -1115,9 +1183,9 @@ class Ribbons {
     }
   }
   public void scaleUpChangeGraphics() {
-  Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
-  current_graphics = (int)cp5.getController(name + "/graphics").getValue();
-}
+    Ani.to(this, 1.0f, "a_scale", 1.0f, Ani.QUAD_IN);
+    current_graphics = (int)cp5.getController(name + "/graphics").getValue();
+  }
 
   public void calculateAnchors() {
     for (int i = 0; i<4; i++) {
@@ -1258,6 +1326,10 @@ public void controlSetup() {
   cp5 = new ControlP5(this);
   int xoff = 10;
   int yoff = 20;
+
+  //cp5.setColorForeground(cp5A.getForegroundColor());
+  //cp5.setColorBackground(cp5A.getBackgroundColor());
+  //cp5.setColorActive(cp5A.getActiveConColor());
 
   cb = new CallbackListener() {
     public void controlEvent(CallbackEvent theEvent) {
@@ -1535,6 +1607,19 @@ public void controlEvent(ControlEvent theEvent) {
 /*
 Custom control functions
 */
+/*
+void keyPressed() {
+  // default properties load/save key combinations are
+  // alt+shift+l to load properties
+  // alt+shift+s to save properties
+  if (key=='1') {
+    cp5.saveProperties(("hello.properties"));
+  }
+  else if (key=='2') {
+    cp5.loadProperties(("hello.properties"));
+  }
+}
+*/
 public void loadGraphics() {
   carrots[0] = loadImage("carrot01.png");
   carrots[1] = loadImage("carrot02.png");
@@ -1563,6 +1648,12 @@ public void loadGraphics() {
 
   marius[0] = loadImage("Marius.png");
 
+  mia[0] = loadImage("mia.png");
+
+  mia_ring = loadImage("mia_ring.png");
+  mia_emblem[0] = mia[0];
+  mia_emblem[1] = mia_ring;
+
   logo_name = loadImage("vaev_logo.png");
   logo_star = loadImage("vaev_logo_star.png");
   logo[0] = logo_name;
@@ -1572,6 +1663,21 @@ public void loadGraphics() {
   skovdyr_ring = loadImage("skovdyr_ring.png");
   skovdyr[0] = skovdyr_emblem;
   skovdyr[1] = skovdyr_ring;
+
+  rummelpot_emblem = loadImage("rummelpot_emblem.png");
+  rummelpot_ring = loadImage("rummelpot_ring.png");
+  rummelpot[0] = rummelpot_emblem;
+  rummelpot[1] = rummelpot_ring;
+
+  jomfru = loadImage("rummelpot_jomfru.png");
+  hollaender = loadImage("rummelpot_hollaender.png");
+  potflag = loadImage("rummelpot_potflag.png");
+  rummelpotjomfru[0] = hollaender;
+  rummelpotjomfru[1] = jomfru;
+  rummelpotjomfru[2] = potflag;
+
+  sparrows[0] = loadImage("sparrow01.png");
+  sparrows[1] = loadImage("sparrow02.png");
 }
 public void noteOn(int channel, int pitch, int velocity) {
   if (log_midi) log.setText("Note On // Channel:"+channel + " // Pitch:"+pitch + " // Velocity:"+velocity);

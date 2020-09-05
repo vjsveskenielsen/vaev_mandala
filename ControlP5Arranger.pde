@@ -8,7 +8,11 @@ class ControlP5Arranger {
   int groupwidth = 120;
   PVector[] anchors;
   int anchor_index = 0;
-  int groupheight = 150;
+  int groupheight = 550;
+  color[] foregroundColors = {color(150), color(255, 0, 0, 100),  color(0, 200, 50, 100),  color(0, 0, 255, 100)};
+  color[] backgroundColors = {color(150), color(255, 0, 0, 50),   color(0, 200, 50, 50),   color(0, 0, 255, 50)};
+  color[] activeConColors =  {color(150), color(255, 0, 0, 255),  color(0, 200, 50, 255),  color(0, 0, 255, 255)};
+  int colorSchemeIndex = 0;
 
   void style1(String con_name) {
     Controller con = cp5.getController(con_name);
@@ -17,6 +21,9 @@ class ControlP5Arranger {
     con.setId(0);
     con.getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
     con.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+    //con.setColorForeground(cp5A.getForegroundColor());
+    //con.setColorBackground(cp5A.getBackgroundColor());
+    //con.setColorActive(cp5A.getActiveConColor());
   }
 
   //anchors[0] x, anchors[0] y, n anchors on x axis, n anchors on y axis
@@ -58,5 +65,22 @@ class ControlP5Arranger {
   void addXY(int inputx, int inputy) {
     x += inputx;
     y += inputy;
+  }
+
+  color getForegroundColor() {
+    return foregroundColors[colorSchemeIndex];
+  }
+  color getBackgroundColor() {
+    return activeConColors[colorSchemeIndex];
+  }
+  color getActiveConColor() {
+    return activeConColors[colorSchemeIndex];
+  }
+
+  void goToNextColorScheme() {
+    colorSchemeIndex = rollOver(colorSchemeIndex+1, 0, foregroundColors.length);
+  }
+  void setColorScheme(int input) {
+    colorSchemeIndex = input;
   }
 }

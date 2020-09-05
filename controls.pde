@@ -3,6 +3,10 @@ void controlSetup() {
   int xoff = 10;
   int yoff = 20;
 
+  //cp5.setColorForeground(cp5A.getForegroundColor());
+  //cp5.setColorBackground(cp5A.getBackgroundColor());
+  //cp5.setColorActive(cp5A.getActiveConColor());
+
   cb = new CallbackListener() {
     public void controlEvent(CallbackEvent theEvent) {
       switch(theEvent.getAction()) {
@@ -278,4 +282,17 @@ public void controlEvent(ControlEvent theEvent) {
 
 /*
 Custom control functions
+*/
+/*
+void keyPressed() {
+  // default properties load/save key combinations are
+  // alt+shift+l to load properties
+  // alt+shift+s to save properties
+  if (key=='1') {
+    cp5.saveProperties(("hello.properties"));
+  }
+  else if (key=='2') {
+    cp5.loadProperties(("hello.properties"));
+  }
+}
 */

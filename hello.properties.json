@@ -1,0 +1,189 @@
+{
+  "/Mandala2/n": {
+    "min": 5,
+    "max": 49,
+    "value": 5
+  },
+  "/Emblem/scale": {
+    "min": 0,
+    "max": 2,
+    "value": 1
+  },
+  "/Mandala1/rotation_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  },
+  "/Mandala3/graphics": {"value": 0},
+  "/Mandala2/distance_limit": {
+    "min": 0,
+    "max": 0.75,
+    "value": 0.25
+  },
+  "/Mandala1/mod_rate": {
+    "min": -0.5,
+    "max": 0.5,
+    "value": 0
+  },
+  "/Mandala3/distance_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  },
+  "/Corners/scale": {
+    "min": 0,
+    "max": 2,
+    "value": 0
+  },
+  "/Mandala3/orientation": {
+    "min": -3.1415927410125732,
+    "max": 3.1415927410125732,
+    "value": 0
+  },
+  "/dropdown_midi": {"value": 0},
+  "/Mandala2/orientation": {
+    "min": -3.1415927410125732,
+    "max": 3.1415927410125732,
+    "value": 0
+  },
+  "/Mandala2/mod_freq": {
+    "min": 0,
+    "max": 10,
+    "value": 0
+  },
+  "/Mandala3/scale": {
+    "min": 0,
+    "max": 2,
+    "value": 0
+  },
+  "/Mandala3/rotation_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  },
+  "/viewport_show_alpha": {"value": 0},
+  "/Ribbons/graphics": {"value": 0},
+  "/Mandala2/mod_rate": {
+    "min": -0.5,
+    "max": 0.5,
+    "value": 0
+  },
+  "/Mandala1/graphics": {"value": 0},
+  "/Mandala1/orientation": {
+    "min": -3.1415927410125732,
+    "max": 3.1415927410125732,
+    "value": 0
+  },
+  "/Mandala1/mod_amount": {
+    "min": 0,
+    "max": 0.5,
+    "value": 0
+  },
+  "/field_osc_port": {"text": "9999"},
+  "/Emblem/r1_rotate_wiggle": {"value": 1},
+  "/Mandala2/scale": {
+    "min": 0,
+    "max": 2,
+    "value": 0
+  },
+  "/Emblem/r1_rotation_speed": {
+    "min": -0.009999999776482582,
+    "max": 0.009999999776482582,
+    "value": 0.009999999776482582
+  },
+  "/Emblem/graphics": {"value": 0},
+  "/Ribbons/direction": {
+    "min": -10,
+    "max": 10,
+    "value": 2.5
+  },
+  "/field_cw": {"text": "1920"},
+  "/Mandala3/mod_rate": {
+    "min": -0.5,
+    "max": 0.5,
+    "value": 0
+  },
+  "/Emblem/r0_rotation_speed": {
+    "min": -0.009999999776482582,
+    "max": 0.009999999776482582,
+    "value": 0.009999999776482582
+  },
+  "/Mandala2/mod_amount": {
+    "min": 0,
+    "max": 0.5,
+    "value": 0
+  },
+  "/Mandala3/n": {
+    "min": 5,
+    "max": 49,
+    "value": 15
+  },
+  "/Mandala1/n": {
+    "min": 5,
+    "max": 49,
+    "value": 5
+  },
+  "/field_ch": {"text": "1080"},
+  "/Emblem/r0_rotate_wiggle": {"value": 0},
+  "/Mandala3/mod_freq": {
+    "min": 0,
+    "max": 10,
+    "value": 0
+  },
+  "/log_osc": {"value": 1},
+  "/Mandala2/graphics": {"value": 0},
+  "/Mandala1/distance_limit": {
+    "min": 0,
+    "max": 0.75,
+    "value": 0.25
+  },
+  "/Ribbons/toggle": {"value": 1},
+  "/Mandala1/mod_freq": {
+    "min": 0,
+    "max": 10,
+    "value": 0
+  },
+  "/field_syphon_name": {"text": "vaev"},
+  "/Ribbons/yoffset": {
+    "min": 0,
+    "max": 200,
+    "value": 100
+  },
+  "/field_osc_address": {"text": "vaev"},
+  "/Ribbons/scale": {
+    "min": 0,
+    "max": 1,
+    "value": 0.5
+  },
+  "/Mandala1/distance_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  },
+  "/Mandala3/mod_amount": {
+    "min": 0,
+    "max": 0.5,
+    "value": 0
+  },
+  "/Mandala1/scale": {
+    "min": 0,
+    "max": 2,
+    "value": 0
+  },
+  "/Mandala2/rotation_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  },
+  "/Mandala3/distance_limit": {
+    "min": 0,
+    "max": 0.75,
+    "value": 0.25
+  },
+  "/log_midi": {"value": 1},
+  "/Mandala2/distance_speed": {
+    "min": -100,
+    "max": 100,
+    "value": 0
+  }
+}

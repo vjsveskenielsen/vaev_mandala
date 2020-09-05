@@ -26,6 +26,12 @@ void loadGraphics() {
 
   marius[0] = loadImage("Marius.png");
 
+  mia[0] = loadImage("mia.png");
+
+  mia_ring = loadImage("mia_ring.png");
+  mia_emblem[0] = mia[0];
+  mia_emblem[1] = mia_ring;
+
   logo_name = loadImage("vaev_logo.png");
   logo_star = loadImage("vaev_logo_star.png");
   logo[0] = logo_name;
@@ -35,4 +41,19 @@ void loadGraphics() {
   skovdyr_ring = loadImage("skovdyr_ring.png");
   skovdyr[0] = skovdyr_emblem;
   skovdyr[1] = skovdyr_ring;
+
+  rummelpot_emblem = loadImage("rummelpot_emblem.png");
+  rummelpot_ring = loadImage("rummelpot_ring.png");
+  rummelpot[0] = rummelpot_emblem;
+  rummelpot[1] = rummelpot_ring;
+
+  jomfru = loadImage("rummelpot_jomfru.png");
+  hollaender = loadImage("rummelpot_hollaender.png");
+  potflag = loadImage("rummelpot_potflag.png");
+  rummelpotjomfru[0] = hollaender;
+  rummelpotjomfru[1] = jomfru;
+  rummelpotjomfru[2] = potflag;
+
+  sparrows[0] = loadImage("sparrow01.png");
+  sparrows[1] = loadImage("sparrow02.png");
 }

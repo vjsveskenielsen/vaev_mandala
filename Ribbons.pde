@@ -17,9 +17,10 @@ class Ribbons {
 
   Ribbons(String _name) {
     name = _name;
-    PImage r1 = loadImage("ribbon1.png");
-    PImage r2 = loadImage("ribbon2.png");
-    PImage[] _ribbon_graphics = { r1, r2 };
+    PImage r1 = loadImage("ribbon01.png");
+    PImage r2 = loadImage("ribbon02.png");
+    PImage r3 = loadImage("ribbon03.png");
+    PImage[] _ribbon_graphics = { r1, r2, r3 };
     ribbon_graphics = _ribbon_graphics;
     calculateRibbons();
     calculateAnchors();
@@ -82,6 +83,7 @@ class Ribbons {
     .setPosition(cp5A.x, cp5A.y)
     .addItem("flowers", 0)
     .addItem("tangents", 1)
+    .addItem("roses", 2)
     .setValue(0)
     .plugTo(this, "scaleDownChangeGraphics")
     .setLabel("choose graphics")
@@ -111,9 +113,9 @@ class Ribbons {
     }
   }
   void scaleUpChangeGraphics() {
-  Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
-  current_graphics = (int)cp5.getController(name + "/graphics").getValue();
-}
+    Ani.to(this, 1.0, "a_scale", 1.0, Ani.QUAD_IN);
+    current_graphics = (int)cp5.getController(name + "/graphics").getValue();
+  }
 
   void calculateAnchors() {
     for (int i = 0; i<4; i++) {

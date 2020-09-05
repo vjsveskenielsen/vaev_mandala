@@ -45,6 +45,9 @@ Emblem emblem;
 PImage ribbon;
 PImage skovdyr_emblem, skovdyr_ring;
 PImage logo_name, logo_star;
+PImage rummelpot_emblem, rummelpot_ring;
+PImage jomfru, hollaender, potflag;
+PImage mia_ring;
 
 PImage[] carrots = new PImage[2];
 PImage[] leaves = new PImage[2];
@@ -54,11 +57,16 @@ PImage[] mexiko = new PImage[2];
 PImage[] fish = new PImage[2];
 PImage[] members = new PImage[2];
 PImage[] marius = new PImage[1];
+PImage[] mia = new PImage[1];
 PImage[] skovdyr = new PImage[2];
 PImage[] logo = new PImage[2];
+PImage[] rummelpot = new PImage[2];
+PImage[] rummelpotjomfru = new PImage[3];
+PImage[] mia_emblem = new PImage[2];
+PImage[] sparrows = new PImage[2];
 
-PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius};
-PImage[][] emblem_graphics = {logo, skovdyr};
+PImage[][] mandala_graphics = {carrots, leaves, bushels, flowers, mexiko, fish, members, marius, mia, sparrows};
+PImage[][] emblem_graphics = {logo, skovdyr, rummelpot, rummelpotjomfru, mia_emblem};
 
 void settings() {
   size(1500, 540, P3D);
@@ -85,7 +93,9 @@ void setup() {
   mandalas.add(new Mandala("Mandala1"));
   mandalas.add(new Mandala("Mandala2"));
   mandalas.add(new Mandala("Mandala3"));
-
+  mandalas.get(1).m_scale = 0.0;
+  mandalas.get(2).m_scale = 0.0;
+  cp5A.setColorScheme(0);
   ribbons = new Ribbons("Ribbons");
   corners = new Corners("Corners");
   emblem = new Emblem("Emblem");
@@ -97,19 +107,22 @@ void draw() {
   fill(100);
   rect(0, 0, width, 55);
   fill(cp5.getTab("output/syphon").getColor().getBackground());
-  rect(0, 0, width, cp5.getTab("output/syphon").getHeight());
+  rect(0, 0, width, cp5.getTab("OUTPUT/syphon").getHeight());
 
 
   drawGraphics();
   vp.display(c);
   syphonserver.sendImage(c);
-  for (Mandala m : mandalas) {
-    int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
-    int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
-    stroke(255, 0, 0);
-    noFill();
-    circle(x, y, m.d_norm/2*m.d_max);
-  }
+  //interface helpers for mandalas
+  int colorindex = 1;
+    for (Mandala m : mandalas) {
+      int x = (int)map(m.anchor.x, 0, c.width, vp.position.x, vp.position.x+vp.size);
+      int y = (int)map(m.anchor.y, 0, c.height, vp.position.y, vp.position.y+vp.size);
+      stroke(cp5A.foregroundColors[colorindex]);
+      noFill();
+      circle(x, y, m.d_norm/2*m.d_max);
+      colorindex++;
+    }
 
   log.update();
   displayFrameRate();
